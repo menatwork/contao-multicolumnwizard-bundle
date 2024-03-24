@@ -26,3 +26,4 @@ $GLOBALS['TL_LANG']['ERR']['mcwMaxCount'] = 'Es dürfen höchstens %s Zeilen aus
 $GLOBALS['TL_LANG']['MSC']['tw_rnew']     = 'Eine neue Reihe erstellen.';
 $GLOBALS['TL_LANG']['MSC']['tw_rmove']    = 'Die Reihe verschieben.';
 $GLOBALS['TL_LANG']['MSC']['fileManager'] = 'Dateiverwaltung';
+$GLOBALS['TL_LANG']['MSC']['wordWrap'] = 'Zeilenumbruch';
