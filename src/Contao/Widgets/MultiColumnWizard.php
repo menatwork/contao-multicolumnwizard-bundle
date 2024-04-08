@@ -1056,17 +1056,17 @@ class MultiColumnWizard extends Widget
         if (($arrField['inputType'] ?? null) == 'textarea' && empty($arrField['eval']['rte'])) {
             $xlabel .= ' '
                        . Image::getHtml(
-                    'wrap.gif',
-                    $GLOBALS['TL_LANG']['MSC']['wordWrap'],
-                    'title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['wordWrap'])
-                    . '" class="toggleWrap" onclick="Backend.toggleWrap(\'ctrl_'
-                    . $this->strId
-                    . '_row'
-                    . $intRow
-                    . '_'
-                    . $strKey
-                    . '\');"'
-                );
+                        'wrap.gif',
+                        $GLOBALS['TL_LANG']['MSC']['wordWrap'],
+                        'title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['wordWrap'])
+                        . '" class="toggleWrap" onclick="Backend.toggleWrap(\'ctrl_'
+                        . $this->strId
+                        . '_row'
+                        . $intRow
+                        . '_'
+                        . $strKey
+                        . '\');"'
+                       );
         }
 
         // Add the help wizard
@@ -1075,18 +1075,18 @@ class MultiColumnWizard extends Widget
                        . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['helpWizard'])
                        . '" onclick="Backend.openModalIframe({\'width\':735,\'height\':405,\'title\':\''
                        . StringUtil::specialchars(
-                    str_replace(
-                        "'",
-                        "\\'",
-                        $arrField['label'][0]
-                    )
-                )
+                            str_replace(
+                                "'",
+                                "\\'",
+                                $arrField['label'][0]
+                            )
+                       )
                        . '\',\'url\':this.href});return false">'
                        . Image::getHtml(
-                    'about.gif',
-                    $GLOBALS['TL_LANG']['MSC']['helpWizard'],
-                    'style="vertical-align:text-bottom"'
-                ) . '</a>';
+                            'about.gif',
+                            $GLOBALS['TL_LANG']['MSC']['helpWizard'],
+                            'style="vertical-align:text-bottom"'
+                       ) . '</a>';
         }
 
         // Add the popup file manager
@@ -1102,10 +1102,10 @@ class MultiColumnWizard extends Widget
                                      . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['fileManager'])
                                      . '" data-lightbox="files 765 80%">'
                                      . Image::getHtml(
-                    'filemanager.gif',
-                    $GLOBALS['TL_LANG']['MSC']['fileManager'],
-                    'style="vertical-align:text-bottom;"'
-                )
+                                        'filemanager.gif',
+                                        $GLOBALS['TL_LANG']['MSC']['fileManager'],
+                                        'style="vertical-align:text-bottom;"'
+                                     )
                                      . '</a>';
             $arrField['strField'] = $this->strField . '__' . $strKey;
 
@@ -1120,27 +1120,27 @@ class MultiColumnWizard extends Widget
                        . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_import'][1])
                        . '" onclick="Backend.getScrollOffset();">'
                        . Image::getHtml(
-                    'tablewizard.gif',
-                    $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
-                    'style="vertical-align:text-bottom;"'
-                )
+                            'tablewizard.gif',
+                            $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
+                            'style="vertical-align:text-bottom;"'
+                       )
                        . '</a>';
 
             $xlabel .= ' '
                        . Image::getHtml(
-                    'demagnify.gif',
-                    '',
-                    'title="'
-                    . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_shrink'])
-                    . '" style="vertical-align:text-bottom; cursor:pointer;" onclick="Backend.tableWizardResize(0.9);"'
-                )
+                            'demagnify.gif',
+                            '',
+                            'title="'
+                            . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_shrink'])
+                            . '" style="vertical-align:text-bottom; cursor:pointer;" onclick="Backend.tableWizardResize(0.9);"'
+                       )
                        . Image::getHtml(
-                    'magnify.gif',
-                    '',
-                    'title="'
-                    . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_expand'])
-                    . '" style="vertical-align:text-bottom; cursor:pointer;" onclick="Backend.tableWizardResize(1.1);"'
-                );
+                           'magnify.gif',
+                           '',
+                           'title="'
+                           . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_expand'])
+                           . '" style="vertical-align:text-bottom; cursor:pointer;" onclick="Backend.tableWizardResize(1.1);"'
+                       );
         } elseif (($arrField['inputType'] ?? null) == 'listWizard') {
             // Add the list import wizard
             $xlabel .= ' <a href="'
@@ -1148,10 +1148,10 @@ class MultiColumnWizard extends Widget
                        . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['lw_import'][1])
                        . '" onclick="Backend.getScrollOffset();">'
                        . Image::getHtml(
-                    'tablewizard.gif',
-                    $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
-                    'style="vertical-align:text-bottom;"'
-                )
+                            'tablewizard.gif',
+                            $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
+                            'style="vertical-align:text-bottom;"'
+                        )
                        . '</a>';
         }
 
@@ -1469,7 +1469,9 @@ class MultiColumnWizard extends Widget
                                 : '<th>';
                         } else {
                             $strHeaderItem = '<th>'
-                                             . (array_key_exists($strKey, $arrHiddenHeader) ? '<div class="hidden">' : '');
+                                             . (array_key_exists($strKey, $arrHiddenHeader)
+                                               ? '<div class="hidden">'
+                                               : '');
                         }
                         if (isset($arrField['eval']['mandatory']) && $arrField['eval']['mandatory']) {
                             $strHeaderItem .= '<span class="invisible">'
