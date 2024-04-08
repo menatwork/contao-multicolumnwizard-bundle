@@ -1056,16 +1056,16 @@ class MultiColumnWizard extends Widget
         if (($arrField['inputType'] ?? null) == 'textarea' && empty($arrField['eval']['rte'])) {
             $xlabel .= ' '
                        . Image::getHtml(
-                        'wrap.gif',
-                        $GLOBALS['TL_LANG']['MSC']['wordWrap'],
-                        'title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['wordWrap'])
-                        . '" class="toggleWrap" onclick="Backend.toggleWrap(\'ctrl_'
-                        . $this->strId
-                        . '_row'
-                        . $intRow
-                        . '_'
-                        . $strKey
-                        . '\');"'
+                           'wrap.gif',
+                           $GLOBALS['TL_LANG']['MSC']['wordWrap'],
+                           'title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['wordWrap'])
+                           . '" class="toggleWrap" onclick="Backend.toggleWrap(\'ctrl_'
+                           . $this->strId
+                           . '_row'
+                           . $intRow
+                           . '_'
+                           . $strKey
+                           . '\');"'
                        );
         }
 
@@ -1075,7 +1075,7 @@ class MultiColumnWizard extends Widget
                        . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['helpWizard'])
                        . '" onclick="Backend.openModalIframe({\'width\':735,\'height\':405,\'title\':\''
                        . StringUtil::specialchars(
-                            str_replace(
+                           str_replace(
                                 "'",
                                 "\\'",
                                 $arrField['label'][0]
@@ -1133,7 +1133,7 @@ class MultiColumnWizard extends Widget
                            'title="'
                             . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_shrink'])
                             . '" style="vertical-align:text-bottom; cursor:pointer;"'
-                            .' onclick="Backend.tableWizardResize(0.9);"'
+                            . ' onclick="Backend.tableWizardResize(0.9);"'
                        )
                        . Image::getHtml(
                            'magnify.gif',
