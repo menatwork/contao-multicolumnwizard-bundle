@@ -1148,10 +1148,10 @@ class MultiColumnWizard extends Widget
                        . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['lw_import'][1])
                        . '" onclick="Backend.getScrollOffset();">'
                        . Image::getHtml(
-                            'tablewizard.gif',
-                            $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
-                            'style="vertical-align:text-bottom;"'
-                        )
+                           'tablewizard.gif',
+                           $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
+                           'style="vertical-align:text-bottom;"'
+                       )
                        . '</a>';
         }
 
