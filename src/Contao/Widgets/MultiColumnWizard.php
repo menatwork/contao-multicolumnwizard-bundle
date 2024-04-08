@@ -1083,9 +1083,9 @@ class MultiColumnWizard extends Widget
                        )
                        . '\',\'url\':this.href});return false">'
                        . Image::getHtml(
-                            'about.gif',
-                            $GLOBALS['TL_LANG']['MSC']['helpWizard'],
-                            'style="vertical-align:text-bottom"'
+                           'about.gif',
+                           $GLOBALS['TL_LANG']['MSC']['helpWizard'],
+                           'style="vertical-align:text-bottom"'
                        ) . '</a>';
         }
 
@@ -1102,9 +1102,9 @@ class MultiColumnWizard extends Widget
                                      . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['fileManager'])
                                      . '" data-lightbox="files 765 80%">'
                                      . Image::getHtml(
-                                        'filemanager.gif',
-                                        $GLOBALS['TL_LANG']['MSC']['fileManager'],
-                                        'style="vertical-align:text-bottom;"'
+                                         'filemanager.gif',
+                                         $GLOBALS['TL_LANG']['MSC']['fileManager'],
+                                         'style="vertical-align:text-bottom;"'
                                      )
                                      . '</a>';
             $arrField['strField'] = $this->strField . '__' . $strKey;
@@ -1120,26 +1120,28 @@ class MultiColumnWizard extends Widget
                        . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_import'][1])
                        . '" onclick="Backend.getScrollOffset();">'
                        . Image::getHtml(
-                            'tablewizard.gif',
-                            $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
-                            'style="vertical-align:text-bottom;"'
+                           'tablewizard.gif',
+                           $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
+                           'style="vertical-align:text-bottom;"'
                        )
                        . '</a>';
 
             $xlabel .= ' '
                        . Image::getHtml(
-                            'demagnify.gif',
-                            '',
-                            'title="'
+                           'demagnify.gif',
+                           '',
+                           'title="'
                             . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_shrink'])
-                            . '" style="vertical-align:text-bottom; cursor:pointer;" onclick="Backend.tableWizardResize(0.9);"'
+                            . '" style="vertical-align:text-bottom; cursor:pointer;"'
+                            .' onclick="Backend.tableWizardResize(0.9);"'
                        )
                        . Image::getHtml(
                            'magnify.gif',
                            '',
                            'title="'
                            . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_expand'])
-                           . '" style="vertical-align:text-bottom; cursor:pointer;" onclick="Backend.tableWizardResize(1.1);"'
+                           . '" style="vertical-align:text-bottom; cursor:pointer;"'
+                           . ' onclick="Backend.tableWizardResize(1.1);"'
                        );
         } elseif (($arrField['inputType'] ?? null) == 'listWizard') {
             // Add the list import wizard
