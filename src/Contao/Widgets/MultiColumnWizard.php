@@ -1074,11 +1074,13 @@ class MultiColumnWizard extends Widget
             $xlabel .= ' <a href="contao/help.php?table=' . $this->strTable . '&amp;field=' . $this->strField
                        . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['helpWizard'])
                        . '" onclick="Backend.openModalIframe({\'width\':735,\'height\':405,\'title\':\''
-                       . StringUtil::specialchars(str_replace(
-                                                      "'",
-                                                      "\\'",
-                                                      $arrField['label'][0]
-                                                  ))
+                       . StringUtil::specialchars(
+                    str_replace(
+                        "'",
+                        "\\'",
+                        $arrField['label'][0]
+                    )
+                )
                        . '\',\'url\':this.href});return false">'
                        . Image::getHtml(
                     'about.gif',
@@ -1095,16 +1097,16 @@ class MultiColumnWizard extends Widget
                 $path = '?node=' . $arrField['eval']['path'];
             }
 
-            $xlabel              .= ' <a href="'
-                                    . $strContaoPrefix . 'files.php' . $path
-                                    . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['fileManager'])
-                                    . '" data-lightbox="files 765 80%">'
-                                    . Image::getHtml(
+            $xlabel               .= ' <a href="'
+                                     . $strContaoPrefix . 'files.php' . $path
+                                     . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['fileManager'])
+                                     . '" data-lightbox="files 765 80%">'
+                                     . Image::getHtml(
                     'filemanager.gif',
                     $GLOBALS['TL_LANG']['MSC']['fileManager'],
                     'style="vertical-align:text-bottom;"'
                 )
-                                    . '</a>';
+                                     . '</a>';
             $arrField['strField'] = $this->strField . '__' . $strKey;
 
             // Add title at modal window.
@@ -1478,7 +1480,7 @@ class MultiColumnWizard extends Widget
                         if (isset($arrField['eval']['mandatory']) && $arrField['eval']['mandatory']) {
                             $strHeaderItem .= '<span class="mandatory">*</span>';
                         }
-                        $strHeaderItem     .= (null !== ($description = $this->getDescription($arrField, $strKey)))
+                        $strHeaderItem     .= (null !== ($description = $this->getDescription($arrField)))
                             ? '<span title="' . $description . '"> <sup>(?)</sup></span>'
                             : '';
                         $strHeaderItem     .= (array_key_exists($strKey, $arrHiddenHeader)) ? '</div>' : '';
@@ -1692,7 +1694,9 @@ SCRIPT;
             }
 
             $arrReturnItems[$itemKey] = '<div'
-                                        . ($itemValue['tl_class'] != '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
+                                        . ($itemValue['tl_class'] != ''
+                                            ? ' class="' . $itemValue['tl_class'] . '"'
+                                            : '')
                                         . '>'
                                         . $itemValue['entry']
                                         . '</div>';
@@ -1799,11 +1803,10 @@ SCRIPT;
      * Get description - if multilanguage, as translated string.
      *
      * @param array  $field
-     * @param string $key
      *
      * @return string|null
      */
-    private function getDescription(array $field, string $key): ?string
+    private function getDescription(array $field): ?string
     {
         $label = $field['label'] ?? null;
         if (is_array($label) && is_string($label[1] ?? null) && '' !== $label[1]) {
