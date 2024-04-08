@@ -1074,13 +1074,7 @@ class MultiColumnWizard extends Widget
             $xlabel .= ' <a href="contao/help.php?table=' . $this->strTable . '&amp;field=' . $this->strField
                        . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['helpWizard'])
                        . '" onclick="Backend.openModalIframe({\'width\':735,\'height\':405,\'title\':\''
-                       . StringUtil::specialchars(
-                           str_replace(
-                                "'",
-                                "\\'",
-                                $arrField['label'][0]
-                            )
-                       )
+                       . StringUtil::specialchars(str_replace("'", "\\'", $arrField['label'][0]))
                        . '\',\'url\':this.href});return false">'
                        . Image::getHtml(
                            'about.gif',
