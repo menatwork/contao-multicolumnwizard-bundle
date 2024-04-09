@@ -3,7 +3,7 @@
 /**
  * This file is part of menatwork/contao-multicolumnwizard-bundle.
  *
- * (c) 2012-2023 MEN AT WORK.
+ * (c) 2012-2024 MEN AT WORK.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -43,7 +43,7 @@
  * @author     David Greminger <david.greminger@1up.io>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH
- * @copyright  2013-2023 MEN AT WORK
+ * @copyright  2013-2024 MEN AT WORK
  * @license    https://github.com/menatwork/contao-multicolumnwizard-bundle/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
@@ -60,6 +60,8 @@ use Contao\Input;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\Widget;
+use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ContaoWidgetManager;
+use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\WidgetManager;
 use ContaoCommunityAlliance\DcGeneral\EnvironmentInterface;
 use MenAtWork\MultiColumnWizardBundle\Event\GetColorPickerStringEvent;
 use MenAtWork\MultiColumnWizardBundle\Event\GetDatePickerStringEvent;
@@ -68,6 +70,7 @@ use MenAtWork\MultiColumnWizardBundle\Event\GetTinyMceStringEvent;
 use MenAtWork\MultiColumnWizardBundle\Event\GetDcaPickerWizardStringEvent;
 use MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Class MultiColumnWizard
@@ -165,6 +168,8 @@ class MultiColumnWizard extends Widget
      */
     private ContaoApiService $contaoApi;
 
+    private ?TranslatorInterface $translator = null;
+
     /**
      * Initialize the object
      *
@@ -195,6 +200,13 @@ class MultiColumnWizard extends Widget
         if (!empty($arrAttributes['strTable']) && $this->contaoApi->isFrontend()) {
             $this->strTemplate = 'form_widget';
             Controller::loadDataContainer($arrAttributes['strTable']);
+        }
+
+        // Add symfony translator.
+        if ((bool) ($arrAttributes['useTranslator'] ?? false)) {
+            $translator = System::getContainer()->get('translator');
+            assert($translator instanceof TranslatorInterface);
+            $this->translator = $translator;
         }
 
         /*
@@ -267,7 +279,7 @@ class MultiColumnWizard extends Widget
                 if ($varValue === true) {
                     $this->arrButtons = array();
                 }
-                // No break here.
+            // No break here.
             case 'disableSorting':
                 if ($varValue == true) {
                     unset($this->arrButtons['up']);
@@ -456,7 +468,7 @@ class MultiColumnWizard extends Widget
         if (!empty($rgxp)) {
             trigger_error(
                 sprintf(
-                    'Use of deprecated parameter for %s::%s - %s. 
+                    'Use of deprecated parameter for %s::%s - %s.
                     Use instead the $fieldConfiguration and $fieldConfiguration[\'eval\'][\'rgxp\'] for this.',
                     __CLASS__,
                     __FUNCTION__,
@@ -499,7 +511,7 @@ class MultiColumnWizard extends Widget
         $fieldConfiguration = null,
         $tableName = null
     ) {
-        // Check if we have an configuration.
+        // Check if we have a configuration.
         if (!isset($fieldConfiguration['eval']['colorpicker'])) {
             return '';
         }
@@ -1043,36 +1055,32 @@ class MultiColumnWizard extends Widget
         // Toggle line wrap (textarea)
         if (($arrField['inputType'] ?? null) == 'textarea' && empty($arrField['eval']['rte'])) {
             $xlabel .= ' '
-                . Image::getHtml(
-                    'wrap.gif',
-                    $GLOBALS['TL_LANG']['MSC']['wordWrap'],
-                    'title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['wordWrap'])
-                    . '" class="toggleWrap" onclick="Backend.toggleWrap(\'ctrl_'
-                    . $this->strId
-                    . '_row'
-                    . $intRow
-                    . '_'
-                    . $strKey
-                    . '\');"'
-                );
+                       . Image::getHtml(
+                           'wrap.gif',
+                           $GLOBALS['TL_LANG']['MSC']['wordWrap'],
+                           'title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['wordWrap'])
+                           . '" class="toggleWrap" onclick="Backend.toggleWrap(\'ctrl_'
+                           . $this->strId
+                           . '_row'
+                           . $intRow
+                           . '_'
+                           . $strKey
+                           . '\');"'
+                       );
         }
 
         // Add the help wizard
         if (isset($arrField['eval']['helpwizard']) && $arrField['eval']['helpwizard']) {
             $xlabel .= ' <a href="contao/help.php?table=' . $this->strTable . '&amp;field=' . $this->strField
-                . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['helpWizard'])
-                . '" onclick="Backend.openModalIframe({\'width\':735,\'height\':405,\'title\':\''
-                . StringUtil::specialchars(str_replace(
-                    "'",
-                    "\\'",
-                    $arrField['label'][0]
-                ))
-                . '\',\'url\':this.href});return false">'
-                . Image::getHtml(
-                    'about.gif',
-                    $GLOBALS['TL_LANG']['MSC']['helpWizard'],
-                    'style="vertical-align:text-bottom"'
-                ) . '</a>';
+                       . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['helpWizard'])
+                       . '" onclick="Backend.openModalIframe({\'width\':735,\'height\':405,\'title\':\''
+                       . StringUtil::specialchars(str_replace("'", "\\'", $arrField['label'][0]))
+                       . '\',\'url\':this.href});return false">'
+                       . Image::getHtml(
+                           'about.gif',
+                           $GLOBALS['TL_LANG']['MSC']['helpWizard'],
+                           'style="vertical-align:text-bottom"'
+                       ) . '</a>';
         }
 
         // Add the popup file manager
@@ -1083,16 +1091,16 @@ class MultiColumnWizard extends Widget
                 $path = '?node=' . $arrField['eval']['path'];
             }
 
-            $xlabel              .= ' <a href="'
-                . $strContaoPrefix . 'files.php' . $path
-                . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['fileManager'])
-                . '" data-lightbox="files 765 80%">'
-                . Image::getHtml(
-                    'filemanager.gif',
-                    $GLOBALS['TL_LANG']['MSC']['fileManager'],
-                    'style="vertical-align:text-bottom;"'
-                )
-                . '</a>';
+            $xlabel               .= ' <a href="'
+                                     . $strContaoPrefix . 'files.php' . $path
+                                     . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['fileManager'])
+                                     . '" data-lightbox="files 765 80%">'
+                                     . Image::getHtml(
+                                         'filemanager.gif',
+                                         $GLOBALS['TL_LANG']['MSC']['fileManager'],
+                                         'style="vertical-align:text-bottom;"'
+                                     )
+                                     . '</a>';
             $arrField['strField'] = $this->strField . '__' . $strKey;
 
             // Add title at modal window.
@@ -1101,44 +1109,46 @@ class MultiColumnWizard extends Widget
         } elseif (($arrField['inputType'] ?? null) == 'tableWizard') {
             // Add the table import wizard
             $xlabel .= ' <a href="'
-                . $this->addToUrl('key=table')
-                . '" title="'
-                . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_import'][1])
-                . '" onclick="Backend.getScrollOffset();">'
-                . Image::getHtml(
-                    'tablewizard.gif',
-                    $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
-                    'style="vertical-align:text-bottom;"'
-                )
-                . '</a>';
+                       . $this->addToUrl('key=table')
+                       . '" title="'
+                       . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_import'][1])
+                       . '" onclick="Backend.getScrollOffset();">'
+                       . Image::getHtml(
+                           'tablewizard.gif',
+                           $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
+                           'style="vertical-align:text-bottom;"'
+                       )
+                       . '</a>';
 
             $xlabel .= ' '
-                . Image::getHtml(
-                    'demagnify.gif',
-                    '',
-                    'title="'
-                    . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_shrink'])
-                    . '" style="vertical-align:text-bottom; cursor:pointer;" onclick="Backend.tableWizardResize(0.9);"'
-                )
-                . Image::getHtml(
-                    'magnify.gif',
-                    '',
-                    'title="'
-                    . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_expand'])
-                    . '" style="vertical-align:text-bottom; cursor:pointer;" onclick="Backend.tableWizardResize(1.1);"'
-                );
+                       . Image::getHtml(
+                           'demagnify.gif',
+                           '',
+                           'title="'
+                            . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_shrink'])
+                            . '" style="vertical-align:text-bottom; cursor:pointer;"'
+                            . ' onclick="Backend.tableWizardResize(0.9);"'
+                       )
+                       . Image::getHtml(
+                           'magnify.gif',
+                           '',
+                           'title="'
+                           . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_expand'])
+                           . '" style="vertical-align:text-bottom; cursor:pointer;"'
+                           . ' onclick="Backend.tableWizardResize(1.1);"'
+                       );
         } elseif (($arrField['inputType'] ?? null) == 'listWizard') {
             // Add the list import wizard
             $xlabel .= ' <a href="'
-                . $this->addToUrl('key=list')
-                . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['lw_import'][1])
-                . '" onclick="Backend.getScrollOffset();">'
-                . Image::getHtml(
-                    'tablewizard.gif',
-                    $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
-                    'style="vertical-align:text-bottom;"'
-                )
-                . '</a>';
+                       . $this->addToUrl('key=list')
+                       . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['lw_import'][1])
+                       . '" onclick="Backend.getScrollOffset();">'
+                       . Image::getHtml(
+                           'tablewizard.gif',
+                           $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
+                           'style="vertical-align:text-bottom;"'
+                       )
+                       . '</a>';
         }
 
         // Input field callback
@@ -1151,7 +1161,7 @@ class MultiColumnWizard extends Widget
                 return $this
                     ->{$arrField['input_field_callback'][0]}
                     ->{$arrField['input_field_callback'][1]}($this, $xlabel)
-                ;
+                    ;
             }
 
             if (\is_callable($arrField['input_field_callback'])) {
@@ -1216,11 +1226,6 @@ class MultiColumnWizard extends Widget
             }
 
             $varValue = $objDate->tstamp;
-        }
-
-        // Set the translation
-        if (!isset($GLOBALS['TL_DCA'][$this->strTable]['fields'][$strKey]['label']) && isset($arrField['label'])) {
-            $GLOBALS['TL_DCA'][$this->strTable]['fields'][$strKey]['label'] = $arrField['label'];
         }
 
         // Setup the settings.
@@ -1333,12 +1338,9 @@ class MultiColumnWizard extends Widget
         $model->setProperty($property->getName(), $arrField['value']);
 
         if (TL_MODE === 'FE') {
-            $manager = new \ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\WidgetManager($environment, $model);
+            $manager = new WidgetManager($environment, $model);
         } else {
-            $manager = new \ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ContaoWidgetManager(
-                $environment,
-                $model
-            );
+            $manager = new ContaoWidgetManager($environment, $model);
         }
 
         $widget = $manager->getWidget($property->getName());
@@ -1454,45 +1456,32 @@ class MultiColumnWizard extends Widget
                     } else {
                         if (
                             (isset($arrField['eval']['hideBody'])
-                            && true === $arrField['eval']['hideBody'])
+                             && true === $arrField['eval']['hideBody'])
                             && (isset($arrField['eval']['hideHead'])
-                            && true === $arrField['eval']['hideHead'])
+                                && true === $arrField['eval']['hideHead'])
                         ) {
                             $strHeaderItem = (array_key_exists($strKey, $arrHiddenHeader))
                                 ? '<th class="hidden">'
                                 : '<th>';
                         } else {
                             $strHeaderItem = '<th>'
-                                . (array_key_exists($strKey, $arrHiddenHeader) ? '<div class="hidden">' : '');
+                                             . (array_key_exists($strKey, $arrHiddenHeader)
+                                               ? '<div class="hidden">'
+                                               : '');
                         }
                         if (isset($arrField['eval']['mandatory']) && $arrField['eval']['mandatory']) {
                             $strHeaderItem .= '<span class="invisible">'
-                            . $GLOBALS['TL_LANG']['MSC']['mandatory']
-                            . ' </span>';
+                                              . $GLOBALS['TL_LANG']['MSC']['mandatory']
+                                              . ' </span>';
                         }
-                        $strHeaderItem .=
-                        (
-                            (is_array($arrField['label'] ?? null))
-                                ? $arrField['label'][0]
-                                : (
-                                    (isset($arrField['label']) && $arrField['label'] != null)
-                                        ? $arrField['label']
-                                        : $strKey
-                                )
-                        );
+                        $strHeaderItem .= $this->getLabel($arrField, $strKey);
                         if (isset($arrField['eval']['mandatory']) && $arrField['eval']['mandatory']) {
                             $strHeaderItem .= '<span class="mandatory">*</span>';
                         }
-
-                        $isDescriptionsSet = is_array($arrField['label'] ?? null)
-                                             && isset($arrField['label'][1])
-                                             && $arrField['label'][1] != '';
-                        $strHeaderItem     .=
-                            (
-                                ($isDescriptionsSet)
-                                ? '<span title="' . $arrField['label'][1] . '"><sup>(?)</sup></span>'
-                                : ''
-                            );
+                        $strHeaderItem     .= (null !== ($description = $this->getDescription($arrField)))
+                            ? '<span title="' . $description . '"><sup>('
+                              . $GLOBALS['TL_LANG']['MSC']['description_char'] . ')</sup></span>'
+                            : '';
                         $strHeaderItem     .= (array_key_exists($strKey, $arrHiddenHeader)) ? '</div>' : '';
                         $arrHeaderItems[]  = $strHeaderItem . '</th>';
                     }
@@ -1533,18 +1522,18 @@ class MultiColumnWizard extends Widget
                 }
 
                 $return .= '<td'
-                    . ($itemValue['valign'] != '' ? ' valign="' . $itemValue['valign'] . '"' : '')
-                    . ($itemValue['tl_class'] != '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
-                    . '>'
-                    . $itemValue['entry']
-                    . '</td>';
+                           . ($itemValue['valign'] != '' ? ' valign="' . $itemValue['valign'] . '"' : '')
+                           . ($itemValue['tl_class'] != '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
+                           . '>'
+                           . $itemValue['entry']
+                           . '</td>';
             }
 
             // insert buttons at the very end
             $return .= '<td class="operations col_last"'
-                . (($this->buttonPos != '') ? ' valign="' . $this->buttonPos . '" ' : '')
-                . '>'
-                . $strHidden;
+                       . (($this->buttonPos != '') ? ' valign="' . $this->buttonPos . '" ' : '')
+                       . '>'
+                       . $strHidden;
             $return .= $this->generateButtonString($k);
             $return .= '</td>';
             $return .= '</tr>';
@@ -1669,29 +1658,29 @@ SCRIPT;
         }
 
         $return  = '<div'
-            . (($this->style) ? (' style="' . $this->style . '"') : '')
-            . ' data-operations="maxCount['
-            . ($this->maxCount ? $this->maxCount : '0')
-            . '] minCount['
-            . ($this->minCount ? $this->minCount : '0')
-            . '] unique['
-            . implode(
-                ',',
-                $arrUnique
-            )
-            . '] datepicker['
-            . implode(
-                ',',
-                $arrDatepicker
-            )
-            . '] colorpicker['
-            . implode(
-                ',',
-                $arrColorpicker
-            )
-            . ']" id="ctrl_'
-            . $this->strId
-            . '" class="tl_modulewizard multicolumnwizard">';
+                   . (($this->style) ? (' style="' . $this->style . '"') : '')
+                   . ' data-operations="maxCount['
+                   . ($this->maxCount ? $this->maxCount : '0')
+                   . '] minCount['
+                   . ($this->minCount ? $this->minCount : '0')
+                   . '] unique['
+                   . implode(
+                       ',',
+                       $arrUnique
+                   )
+                   . '] datepicker['
+                   . implode(
+                       ',',
+                       $arrDatepicker
+                   )
+                   . '] colorpicker['
+                   . implode(
+                       ',',
+                       $arrColorpicker
+                   )
+                   . ']" id="ctrl_'
+                   . $this->strId
+                   . '" class="tl_modulewizard multicolumnwizard">';
         $return .= '<div class="header_fields">' . implode('', $arrHeaderItems) . '</div>';
 
 
@@ -1704,10 +1693,12 @@ SCRIPT;
             }
 
             $arrReturnItems[$itemKey] = '<div'
-                . ($itemValue['tl_class'] != '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
-                . '>'
-                . $itemValue['entry']
-                . '</div>';
+                                        . ($itemValue['tl_class'] != ''
+                                            ? ' class="' . $itemValue['tl_class'] . '"'
+                                            : '')
+                                        . '>'
+                                        . $itemValue['entry']
+                                        . '</div>';
         }
 
         $return .= implode('', $arrReturnItems);
@@ -1776,5 +1767,62 @@ SCRIPT;
     private function getNumericDateFormat($rgxp)
     {
         return call_user_func(array('\Contao\Date', 'getNumeric' . ucfirst($rgxp) . 'Format'));
+    }
+
+    /**
+     * Get label - if multilanguage, as translated string.
+     *
+     * @param array  $field
+     * @param string $key
+     *
+     * @return string
+     */
+    private function getLabel(array $field, string $key): string
+    {
+        $label = $field['label'] ?? null;
+        if (is_array($label)) {
+            return $label[0];
+        }
+        if (is_string($label)) {
+            if ($this->translator instanceof TranslatorInterface) {
+                return $this->translator->trans(
+                    $label,
+                    [],
+                    $this->objDca->getEnvironment()->getDataDefinition()->getName()
+                );
+            }
+
+            return $label;
+        }
+
+        return $key;
+    }
+
+    /**
+     * Get description - if multilanguage, as translated string.
+     *
+     * @param array  $field
+     *
+     * @return string|null
+     */
+    private function getDescription(array $field): ?string
+    {
+        $label = $field['label'] ?? null;
+        if (is_array($label) && is_string($label[1] ?? null) && '' !== $label[1]) {
+            return $label[1];
+        }
+        if (is_string($field['description'] ?? null)) {
+            if ($this->translator instanceof TranslatorInterface) {
+                return $this->translator->trans(
+                    $field['description'],
+                    [],
+                    $this->objDca->getEnvironment()->getDataDefinition()->getName()
+                );
+            }
+
+            return $field['description'];
+        }
+
+        return null;
     }
 }
