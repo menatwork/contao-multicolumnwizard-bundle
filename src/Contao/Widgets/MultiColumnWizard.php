@@ -205,9 +205,6 @@ class MultiColumnWizard extends Widget
         // Add symfony translator.
         if ((bool) ($arrAttributes['useTranslator'] ?? false)) {
             $this->translator = System::getContainer()->get('translator');
-            if (!$this->translator instanceof TranslatorInterface) {
-                throw new \RuntimeException('Invalid translator service.');
-            }
         }
 
         /*
