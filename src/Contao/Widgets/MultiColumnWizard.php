@@ -1808,7 +1808,8 @@ SCRIPT;
         return null;
     }
 
-    private function translate(string $id): string {
+    private function translate(string $id): string 
+    {
         if ($this->translator) {
             return $this->translator->trans($id, [], $this->objDca->getEnvironment()->getDataDefinition()->getName());
         }
