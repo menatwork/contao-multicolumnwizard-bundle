@@ -204,9 +204,10 @@ class MultiColumnWizard extends Widget
 
         // Add symfony translator.
         if ((bool) ($arrAttributes['useTranslator'] ?? false)) {
-            $translator = System::getContainer()->get('translator');
-            assert($translator instanceof TranslatorInterface);
-            $this->translator = $translator;
+            $this->translator = System::getContainer()->get('translator');
+            if (!$this->translator instanceof TranslatorInterface) {
+                throw new \RuntimeException('Invalid translator service.');
+            }
         }
 
         /*
@@ -1784,15 +1785,7 @@ SCRIPT;
             return $label[0];
         }
         if (is_string($label)) {
-            if ($this->translator instanceof TranslatorInterface) {
-                return $this->translator->trans(
-                    $label,
-                    [],
-                    $this->objDca->getEnvironment()->getDataDefinition()->getName()
-                );
-            }
-
-            return $label;
+            return $this->translate($label);
         }
 
         return $key;
@@ -1812,17 +1805,17 @@ SCRIPT;
             return $label[1];
         }
         if (is_string($field['description'] ?? null)) {
-            if ($this->translator instanceof TranslatorInterface) {
-                return $this->translator->trans(
-                    $field['description'],
-                    [],
-                    $this->objDca->getEnvironment()->getDataDefinition()->getName()
-                );
-            }
-
-            return $field['description'];
+            return $this->translate($field['description']);
         }
 
         return null;
+    }
+
+    private function translate(string $id): string {
+        if ($this->translator) {
+            return $this->translator->trans($id, [], $this->objDca->getEnvironment()->getDataDefinition()->getName());
+        }
+
+        return $id;
     }
 }
