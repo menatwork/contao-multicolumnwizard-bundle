@@ -30,7 +30,6 @@ Developers should add the Multicolumnwizard to their `composer.json` as a depend
 
 ```php
 <?php
-
 $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
     'label'     => &$GLOBALS['TL_LANG']['tl_theme']['templateSelection'],
     'exclude'   => true,
@@ -60,16 +59,13 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
     ],
     'sql'       => 'blob NULL',
 ];
-
 ?>
 ```
-
 
 ### Usage with callback
 
 ```php
 <?php
-
 $GLOBALS['TL_DCA']['tl_table']['fields']['anything'] = [
     'label'     => &$GLOBALS['TL_LANG']['tl_table']['anything'],
     'exclude'   => true,
@@ -80,16 +76,13 @@ $GLOBALS['TL_DCA']['tl_table']['fields']['anything'] = [
     ],
     'sql'       => 'blob NULL',
 ];
-
 ?>
 ```
-
 
 ### Disable Drag and Drop
 
 ```php
 <?php
-
 $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
     'label'     => &$GLOBALS['TL_LANG']['tl_theme']['templateSelection'],
     'exclude'   => true,
@@ -108,7 +101,6 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
     ],
     'sql'       => 'blob NULL',
 ];
-
 ?>
 ```
 
@@ -116,7 +108,6 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
 
 ```php
 <?php
-
 $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
     'label'     => &$GLOBALS['TL_LANG']['tl_theme']['templateSelection'],
     'exclude'   => true,
@@ -145,6 +136,28 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
     ],
     'sql'       => 'blob NULL',
 ];
-
 ?>
 ```
+
+### Other parameters
+
+From version 3.6.5:
+
+The Symfony translator can be used to translate the label and description. To do this, set the `useTranslator`
+key to true.
+
+```php
+<?php
+$GLOBALS['TL_DCA']['tl_theme']['fields']['anything'] = [
+//...
+    'inputType' => 'multiColumnWizard',
+    'eval'      => [
+        'useTranslator' => true,
+// ...
+    ],
+];
+?>
+```
+
+The descriptions of the columns are displayed in the column header as a tooltip next to the appendix `(i)`
+- the character or text can be changed in the language file.
