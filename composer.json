@@ -67,7 +67,8 @@
   "require-dev": {
     "contao/manager-plugin": "^2.1",
     "phpcq/runner-bootstrap": "^1.0@dev",
-    "roave/security-advisories": "dev-latest"
+    "roave/security-advisories": "dev-latest",
+    "contao-community-alliance/dc-general": "^2.3"
   },
   "replace": {
     "contao-legacy/multicolumnwizard": "*",

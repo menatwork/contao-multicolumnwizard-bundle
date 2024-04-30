@@ -30,6 +30,7 @@ use Contao\CoreBundle\Monolog\ContaoContext;
 use ContaoCommunityAlliance\DcGeneral\ContaoFrontend\View\WidgetManager;
 use ContaoCommunityAlliance\DcGeneral\Contao\Compatibility\DcCompat;
 use ContaoCommunityAlliance\DcGeneral\Contao\View\Contao2BackendView\ContaoWidgetManager;
+use ContaoCommunityAlliance\DcGeneral\Data\ModelId;
 use ContaoCommunityAlliance\DcGeneral\DC\General;
 use ContaoCommunityAlliance\DcGeneral\DataContainerInterface;
 use ContaoCommunityAlliance\DcGeneral\DataDefinition\Definition\Properties\PropertyInterface;
@@ -231,6 +232,11 @@ class ExecutePostActions extends BaseListener
             $container->field = $containerField;
         }
 
+        if (($container instanceof DataContainerInterface)) {
+            $idModel = ModelId::fromSerialized($intId);
+            $intId = $idModel->getId();
+        }
+
         $mcwId = $mcwBaseName . '_row' . $intRow . '_' . $mcwSupFieldName;
 
         // Handle the keys in "edit multiple" mode
@@ -304,7 +310,9 @@ class ExecutePostActions extends BaseListener
                 }
 
                 $varValue                = $objRow->$strField;
-                $container->activeRecord = $objRow;
+                if (!($container instanceof DataContainerInterface)) {
+                    $container->activeRecord = $objRow;
+                }
             }
         }
 
