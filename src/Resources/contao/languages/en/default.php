@@ -26,5 +26,5 @@ $GLOBALS['TL_LANG']['ERR']['mcwMaxCount']      = 'At most %s rows are allowed!';
 $GLOBALS['TL_LANG']['MSC']['tw_rnew']          = 'Ad a new row.';
 $GLOBALS['TL_LANG']['MSC']['tw_rmove']         = 'Move the row.';
 $GLOBALS['TL_LANG']['MSC']['fileManager']      = 'File manager';
-$GLOBALS['TL_LANG']['MSC']['description_char'] = 'i';
+$GLOBALS['TL_LANG']['MSC']['description_char'] = '<sup>(i)</sup>';
 $GLOBALS['TL_LANG']['MSC']['wordWrap']         = 'Word wrap';
