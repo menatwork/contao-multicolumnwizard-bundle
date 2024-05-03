@@ -165,5 +165,5 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['anything'] = [
 ?>
 ```
 
-The descriptions of the columns are displayed in the column header as a tooltip next to the appendix `(i)` - the
+The descriptions of the columns are displayed in the column header as a tooltip next to the icon `🛈` - the
 character or text can be changed in the language file.
