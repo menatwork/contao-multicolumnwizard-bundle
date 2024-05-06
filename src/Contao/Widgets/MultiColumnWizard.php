@@ -1479,8 +1479,8 @@ class MultiColumnWizard extends Widget
                             $strHeaderItem .= '<span class="mandatory">*</span>';
                         }
                         $strHeaderItem     .= (null !== ($description = $this->getDescription($arrField)))
-                            ? '<span title="' . $description . '"><sup>('
-                              . $GLOBALS['TL_LANG']['MSC']['description_char'] . ')</sup></span>'
+                            ? '<span title="' . $description . '">'
+                              . $GLOBALS['TL_LANG']['MSC']['description_char'] . '</span>'
                             : '';
                         $strHeaderItem     .= (array_key_exists($strKey, $arrHiddenHeader)) ? '</div>' : '';
                         $arrHeaderItems[]  = $strHeaderItem . '</th>';
