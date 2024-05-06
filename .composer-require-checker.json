@@ -13,6 +13,7 @@
     "ContaoCommunityAlliance\\DcGeneral\\DataDefinition\\Definition\\PropertiesDefinitionInterface",
     "ContaoCommunityAlliance\\DcGeneral\\DataDefinition\\Definition\\Properties\\DefaultProperty",
     "ContaoCommunityAlliance\\DcGeneral\\DataDefinition\\Definition\\Properties\\PropertyInterface",
+    "ContaoCommunityAlliance\\DcGeneral\\Data\\ModelId",
     "ContaoCommunityAlliance\\DcGeneral\\Data\\ModelInterface",
     "ContaoCommunityAlliance\\DcGeneral\\EnvironmentInterface",
     "ContaoCommunityAlliance\\DcGeneral\\Exception\\DcGeneralRuntimeException",

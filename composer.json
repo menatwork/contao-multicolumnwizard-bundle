@@ -65,6 +65,7 @@
     "symfony/translation": "^5.4 || ^6.0"
   },
   "require-dev": {
+    "contao-community-alliance/dc-general": "^2.3",
     "contao/manager-plugin": "^2.1",
     "phpcq/runner-bootstrap": "^1.0@dev",
     "roave/security-advisories": "dev-latest"
