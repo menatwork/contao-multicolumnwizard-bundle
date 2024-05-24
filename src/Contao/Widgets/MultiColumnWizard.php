@@ -1337,7 +1337,7 @@ class MultiColumnWizard extends Widget
         $model->setId(9999999);
         $model->setProperty($property->getName(), $arrField['value']);
 
-        if (TL_MODE === 'FE') {
+        if ($this->contaoApi->isFrontend()) {
             $manager = new WidgetManager($environment, $model);
         } else {
             $manager = new ContaoWidgetManager($environment, $model);
