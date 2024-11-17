@@ -46,9 +46,9 @@ class TinyMce
         $table   = $event->getTableName();
         $fieldId = $event->getFieldId();
 
-        list($file, $type) = explode('|', $field['eval']['rte'], 2) + [null, null];
+        list ($file, $type) = explode('|', $field['eval']['rte'] ?? '') + [null, null];
 
-        $fileBrowserTypes = array();
+        $fileBrowserTypes = [];
         // Since we don't know if this is the right call for other versions of contao
         // we won't use dependencies injection.
         $pickerBuilder = System::getContainer()->get('contao.picker.builder');
@@ -59,11 +59,14 @@ class TinyMce
             }
         }
 
+        // Convert fileBrowserTypes to a comma-separated string for TinyMCE compatibility.
+        $fileBrowserTypesString = implode(',', $fileBrowserTypes);
+
         /** @var BackendTemplate|object $objTemplate */
         $objTemplate                   = new BackendTemplate('be_' . $file);
         $objTemplate->selector         = 'ctrl_' . $fieldId;
         $objTemplate->type             = $type;
-        $objTemplate->fileBrowserTypes =  json_encode($fileBrowserTypes);
+        $objTemplate->fileBrowserTypes = $fileBrowserTypesString;
         $objTemplate->source           = $table . '.' . $fieldId;
 
         // Deprecated since Contao 4.0, to be removed in Contao 5.0
