@@ -256,7 +256,8 @@ class ExecutePostActions extends BaseListener
         // Add the sub configuration into the DCA. We need this for contao. Without it is not possible
         // to get the data for the picker.
         if (
-            ($GLOBALS['TL_DCA'][$container->table]['fields'][$mcwBaseName]['inputType'] == 'multiColumnWizard')
+            (($GLOBALS['TL_DCA'][$container->table]['fields'][$mcwBaseName]['inputType'] ?? null)
+             === 'multiColumnWizard')
             && !($container instanceof DataContainerInterface)
         ) {
             $widget = MultiColumnWizard::generateSimpleMcw($container->table, $mcwBaseName);
