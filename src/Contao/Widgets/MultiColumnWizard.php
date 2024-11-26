@@ -1071,16 +1071,21 @@ class MultiColumnWizard extends Widget
 
         // Add the help wizard
         if (isset($arrField['eval']['helpwizard']) && $arrField['eval']['helpwizard']) {
+            $label = (isset($arrField['label']) && is_array($arrField['label']) && isset($arrField['label'][0]))
+                ? $arrField['label'][0]
+                : 'Help';
+
+            // Construct the help wizard link
             $xlabel .= ' <a href="contao/help.php?table=' . $this->strTable . '&amp;field=' . $this->strField
-                       . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['helpWizard'])
-                       . '" onclick="Backend.openModalIframe({\'width\':735,\'height\':405,\'title\':\''
-                       . StringUtil::specialchars(str_replace("'", "\\'", $arrField['label'][0]))
-                       . '\',\'url\':this.href});return false">'
-                       . Image::getHtml(
-                           'about.gif',
-                           $GLOBALS['TL_LANG']['MSC']['helpWizard'],
-                           'style="vertical-align:text-bottom"'
-                       ) . '</a>';
+                . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['helpWizard'])
+                . '" onclick="Backend.openModalIframe({\'width\':735,\'height\':405,\'title\':\''
+                . StringUtil::specialchars(str_replace("'", "\\'", $label))
+                . '\',\'url\':this.href});return false">'
+                . Image::getHtml(
+                    'about.gif',
+                    $GLOBALS['TL_LANG']['MSC']['helpWizard'],
+                    'style="vertical-align:text-bottom"'
+                ) . '</a>';
         }
 
         // Add the popup file manager
