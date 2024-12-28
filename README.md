@@ -165,5 +165,32 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['anything'] = [
 ?>
 ```
 
+From version 3.6.10:
+
+Use `default` in `eval` to set multiple default values and rows.
+
+```php
+<?php
+$GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
+    'inputType' => 'multiColumnWizard',
+    'eval'      => [
+        'default'      => [
+            ['ts_client_os' => 'option1', 'ts_client_browser' => 'FF'],
+            ['ts_client_os' => 'option2', 'ts_client_browser' => 'Chrome'],
+        ],
+        'columnFields' => [
+            'ts_client_os'      => [
+                //...
+            ],
+            'ts_client_browser' => [
+                //...
+            ],
+        ],
+    ],
+    'sql'       => 'blob NULL',
+];
+?>
+```
+
 The descriptions of the columns are displayed in the column header as a tooltip next to the icon `🛈` - the
 character or text can be changed in the language file.
