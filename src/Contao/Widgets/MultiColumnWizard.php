@@ -171,6 +171,11 @@ class MultiColumnWizard extends Widget
     private ?TranslatorInterface $translator = null;
 
     /**
+     * @var array|mixed|string|string[]|null
+     */
+    private mixed $defaultValue;
+
+    /**
      * Initialize the object
      *
      * @param array $arrAttributes The attributes for the widget.
@@ -255,6 +260,10 @@ class MultiColumnWizard extends Widget
 
                     $this->varValue = $arrNew;
                 }
+                break;
+
+            case 'default':
+                $this->defaultValue = StringUtil::deserialize($varValue, true);
                 break;
 
             case 'mandatory':
@@ -804,6 +813,10 @@ class MultiColumnWizard extends Widget
         }
 
         $intNumberOfRows = max(count($this->varValue), 1);
+        $useDefaultValue = (0 == count($this->varValue));
+        if ($useDefaultValue && !empty($this->defaultValue)) {
+            $intNumberOfRows = count($this->defaultValue);
+        }
 
         // always show the minimum number of rows if set
         if ($this->minCount && ($intNumberOfRows < $this->minCount)) {
@@ -837,6 +850,11 @@ class MultiColumnWizard extends Widget
                 // load row specific data (useful for example for default values in different rows)
                 if (isset($this->arrRowSpecificData[$i][$strKey])) {
                     $arrField = array_merge($arrField, $this->arrRowSpecificData[$i][$strKey]);
+                }
+
+                // Should we do this above the foreach and run a foreach twice ... nope.
+                if ($useDefaultValue && !empty($this->defaultValue[$i][$strKey] ?? null)) {
+                    $this->varValue[$i][$strKey] = $this->defaultValue[$i][$strKey];
                 }
 
                 $objWidget = $this->initializeWidget(
