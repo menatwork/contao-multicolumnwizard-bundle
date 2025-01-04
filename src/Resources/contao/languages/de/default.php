@@ -21,10 +21,16 @@
  * @filesource
  */
 
+// phpcs:disable
+$iconI = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" >
+    <path d="M7.92,5.32v0A.92.92,0,1,0,7,4.37v0A.92.92,0,0,0,7.92,5.32ZM8.85,6H6.55a4.58,4.58,0,0,1-.1.63,3,3,0,0,1-.2.67h1.3v3.53H6.25v1.3H9.57v-1.3H8.85ZM13,3.05A7,7,0,1,0,13,13,7,7,0,0,0,13,3.05ZM12,12A5.6,5.6,0,0,1,4,12,5.61,5.61,0,0,1,4,4,5.6,5.6,0,0,1,12,4,5.61,5.61,0,0,1,12,12Z"/>
+</svg>';
+// phpcs:enable
+
 $GLOBALS['TL_LANG']['ERR']['mcwMinCount']      = 'Bitte füllen Sie mindestens %s Zeilen aus!';
 $GLOBALS['TL_LANG']['ERR']['mcwMaxCount']      = 'Es dürfen höchstens %s Zeilen ausgefüllt werden!';
 $GLOBALS['TL_LANG']['MSC']['tw_rnew']          = 'Eine neue Reihe erstellen.';
 $GLOBALS['TL_LANG']['MSC']['tw_rmove']         = 'Die Reihe verschieben.';
 $GLOBALS['TL_LANG']['MSC']['fileManager']      = 'Dateiverwaltung';
-$GLOBALS['TL_LANG']['MSC']['description_char'] = '<sup class="desc_icon">&#128712;</sup>';
+$GLOBALS['TL_LANG']['MSC']['description_char'] = '<sup class="desc_icon">' . $iconI . '</sup>';
 $GLOBALS['TL_LANG']['MSC']['wordWrap']         = 'Zeilenumbruch';

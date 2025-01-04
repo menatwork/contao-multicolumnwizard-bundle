@@ -80,8 +80,10 @@
     100% {-webkit-transform: rotate(360deg); transform:rotate(360deg);}
 }
 
-.multicolumnwizard sup.desc_icon {
+.multicolumnwizard sup.desc_icon,
+.multicolumnwizard sup.desc_icon svg {
     color:#999;
+    fill:#999;
     cursor:pointer;
 }
 
