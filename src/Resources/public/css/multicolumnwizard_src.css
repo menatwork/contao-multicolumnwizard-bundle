@@ -21,8 +21,8 @@
     height: auto;
 }
 
-.multicolumnwizard .tl_select,
-.multicolumnwizard .tl_mselect {
+.multicolumnwizard .tl_select:not(.choices),
+.multicolumnwizard .tl_mselect:not(.choices) {
     width: auto;
 }
 
