@@ -1756,7 +1756,7 @@ SCRIPT;
             $return .=
                 \sprintf(
                     '<a data-operations="%s" href="%s" class="widgetImage op-%s" title="%s"
-                         onclick="return false;">%s</a>',
+                         onclick="return false;" data-turbo-prefetch="false">%s</a>',
                     $button,
                     $this->addToUrl(
                         \sprintf(
