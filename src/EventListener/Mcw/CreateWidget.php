@@ -76,7 +76,15 @@ class CreateWidget
         if (Input::get('act') == 'editAll') {
             $fieldName = \preg_replace('/(.*)_[0-9a-zA-Z]+$/', '$1', $fieldName);
         }
-        $dcDriver->field = $fieldName;
+
+        // A MCW in a MCW has a path.
+        $path = \preg_split('/[\[|\]]/i', $fieldName);
+        $path = array_filter($path, 'strlen');
+
+        // The first should be the default MCW on the root level.
+        if (count($path) > 1) {
+            $fieldName = $path[0];
+        }
 
         // The field does not exist
         if (!isset($GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName])) {
@@ -93,29 +101,62 @@ class CreateWidget
             throw new BadRequestHttpException('Bad request');
         }
 
-        $inputType = $GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName]['inputType'];
-
-        /** @var string $widgetClassName */
-        $widgetClassName = $GLOBALS['BE_FFL'][$inputType];
-
-        /** @var MultiColumnWizard $widget */
-        /** @var MultiColumnWizard $widgetClassName */
-        $widget = new $widgetClassName(
-            $widgetClassName::getAttributesFromDca(
-                $GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName],
-                $dcDriver->inputName,
-                '',
-                $fieldName,
-                $dcDriver->table,
-                $dcDriver
-            )
+        // MCW in MCW will generate a path, all else will be a array with one element.
+        $this->loadDcaSettingInDepth(
+            $dcDriver,
+            $GLOBALS['TL_DCA'][$dcDriver->table]['fields'],
+            $path,
+            $event
         );
+    }
 
-        // Set some more information.
-        $widget->currentRecord = $dcDriver->id;
-        $widget->activeRecord  = $dcDriver->activeRecord;
+    /**
+     * @return void
+     */
+    private function loadDcaSettingInDepth($dcDriver, $dca, $path, $event)
+    {
+        $currentElement = $path[0];
 
-        $event->setWidget($widget);
+        if (count($path) > 1) {
+            if (array_key_exists($currentElement, $dca) && $dca[$currentElement]['inputType'] == 'multiColumnWizard') {
+                $this->loadDcaSettingInDepth
+                (
+                    $dcDriver,
+                    $dca[$currentElement]['eval']['columnFields'],
+                    array_slice($path, 2),
+                    $event
+                );
+                return;
+            } else {
+                // The path isn't a MCW element so someting is broken?
+                throw new BadRequestHttpException('Bad request -- Got a MCW path, but can\'t be found');
+            }
+        } else {
+            $mcwDca = $dca[$currentElement];
+            $inputType = $mcwDca['inputType'];
+
+            /** @var string $widgetClassName */
+            $widgetClassName = $GLOBALS['BE_FFL'][$inputType];
+
+            /** @var MultiColumnWizard $widget */
+            /** @var MultiColumnWizard $widgetClassName */
+            $widget = new $widgetClassName(
+                $widgetClassName::getAttributesFromDca(
+                    $mcwDca,
+                    $currentElement,
+                    '',
+                    $fieldName,
+                    $dcDriver->table,
+                    $dcDriver
+                )
+            );
+
+            // Set some more information.
+            $widget->currentRecord = $dcDriver->id;
+            $widget->activeRecord = $dcDriver->activeRecord;
+
+            $event->setWidget($widget);
+        }
     }
 
     /**
@@ -142,7 +183,7 @@ class CreateWidget
         }
 
         // Trigger the dcg to generate the data.
-        $env   = $dcGeneral->getEnvironment();
+        $env = $dcGeneral->getEnvironment();
         $model = $dcGeneral->getModel() ?: $dcGeneral
             ->getEnvironment()
             ->getDataProvider()
