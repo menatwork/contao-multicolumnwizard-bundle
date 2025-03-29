@@ -55,7 +55,9 @@
   "require": {
     "php": "^8.1",
     "ext-json": "*",
+    "contao-components/colorpicker": "^1.5",
     "contao/core-bundle": "^4.13 || ^5.0",
+    "symfony/asset": "^5.4 || ^6.0",
     "symfony/config": "^5.4 || ^6.0",
     "symfony/console": "^5.4 || ^6.0",
     "symfony/dependency-injection": "^5.4 || ^6.0",
