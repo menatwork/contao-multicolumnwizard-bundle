@@ -28,7 +28,6 @@ use Contao\Environment;
 use Contao\Input;
 use Contao\System;
 use MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService;
-use Symfony\Component\Asset\Packages;
 
 /**
  * Class InitializeSystem
@@ -41,18 +40,12 @@ class InitializeSystem
     private ContaoApiService $contaoApi;
 
     /**
-     * @var Packages
-     */
-    private Packages $packages;
-
-    /**
      * @param ContaoApiService $contaoApi
      * @param Packages $packages
      */
-    public function __construct(ContaoApiService $contaoApi, Packages $packages)
+    public function __construct(ContaoApiService $contaoApi)
     {
         $this->contaoApi = $contaoApi;
-        $this->packages = $packages;
     }
 
     /**
@@ -79,12 +72,6 @@ class InitializeSystem
         $GLOBALS['TL_CSS']['multicolumnwizard'] = System::getContainer()->get('kernel')->isDebug()
             ? 'bundles/multicolumnwizard/css/multicolumnwizard_src.css'
             : 'bundles/multicolumnwizard/css/multicolumnwizard.css';
-
-        // Load the old mooRainbow picker in Contao 5.5
-        if (version_compare(ContaoCoreBundle::getVersion(), '5.5', '>=')) {
-            $GLOBALS['TL_JAVASCRIPT']['mooRainbow'] = $this->packages->getUrl('js/mooRainbow.min.js', 'contao-components/colorpicker');
-            $GLOBALS['TL_CSS']['mooRainbow'] = $this->packages->getUrl('css/mooRainbow.min.css', 'contao-components/colorpicker');
-        }
     }
 
     /**

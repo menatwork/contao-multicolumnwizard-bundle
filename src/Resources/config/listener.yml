@@ -31,6 +31,7 @@ services:
       - '@=service(''contao.framework'').getAdapter(''Contao\\Image'')'
       - '@=service(''contao.framework'').getAdapter(''Contao\\StringUtil'')'
       - "@translator"
+      - "@MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService"
     tags:
       - name: kernel.event_listener
         event: men-at-work.multi-column-wizard-bundle.get-color-picker

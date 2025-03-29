@@ -21,19 +21,34 @@ namespace MenAtWork\MultiColumnWizardBundle\Service;
 
 use Composer\InstalledVersions;
 use Contao\CoreBundle\Routing\ScopeMatcher;
+use Symfony\Component\Asset\Packages;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class ContaoApiService
 {
+    /**
+     * @var RequestStack
+     */
     private RequestStack $requestStack;
+
+    /**
+     * @var ScopeMatcher
+     */
     private ScopeMatcher $scopeMatcher;
+
+    /**
+     * @var Packages
+     */
+    private Packages $packages;
 
     public function __construct(
         RequestStack $requestStack,
-        ScopeMatcher $scopeMatcher
+        ScopeMatcher $scopeMatcher,
+        Packages     $packages
     ) {
         $this->requestStack = $requestStack;
         $this->scopeMatcher = $scopeMatcher;
+        $this->packages     = $packages;
     }
 
     /**
@@ -76,5 +91,18 @@ class ContaoApiService
     public function getContaoVersion(): ?string
     {
         return InstalledVersions::getPrettyVersion('contao/core-bundle');
+    }
+
+    /**
+     * Returns the public path for a file.
+     *
+     * @param string      $path
+     * @param string|null $packageName
+     *
+     * @return string
+     */
+    public function getFileUrl(string $path, ?string $packageName = null): string
+    {
+        return $this->packages->getUrl($path, $packageName);
     }
 }
