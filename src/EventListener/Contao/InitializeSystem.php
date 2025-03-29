@@ -23,6 +23,7 @@
 
 namespace MenAtWork\MultiColumnWizardBundle\EventListener\Contao;
 
+use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\Environment;
 use Contao\Input;
 use Contao\System;
@@ -40,6 +41,7 @@ class InitializeSystem
 
     /**
      * @param ContaoApiService $contaoApi
+     * @param Packages $packages
      */
     public function __construct(ContaoApiService $contaoApi)
     {
