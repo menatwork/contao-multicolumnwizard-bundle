@@ -228,7 +228,6 @@ class MultiColumnWizard extends Widget
      * Add specific attributes
      *
      * @param string $strKey   The key to search for.
-     *
      * @param mixed  $varValue The value to set.
      *
      * @return void
@@ -365,7 +364,6 @@ class MultiColumnWizard extends Widget
      * Helper function, which will init the mcw with a minimal setting.
      *
      * @param string $table The name of the table.
-     *
      * @param string $field The name of the field.
      *
      * @return self
