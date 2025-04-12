@@ -995,7 +995,7 @@ class MultiColumnWizard extends Widget
                 $arrHiddenHeader,
                 $onlyRows
             );
-        } elseif ($this->columnTemplate != '') {
+        } elseif ($this->columnTemplate !== '') {
             $strOutput = $this->generateTemplateOutput(
                 $arrUnique,
                 $arrDatepicker,
@@ -1440,7 +1440,7 @@ class MultiColumnWizard extends Widget
 
         $return = '';
 
-        if ($onlyRows == false) {
+        if ($onlyRows === false) {
             // Generate header fields if not all are hidden.
             if (\count($this->columnFields) !== \count($arrHiddenHeader)) {
                 foreach ($this->columnFields as $strKey => $arrField) {
@@ -1498,7 +1498,7 @@ class MultiColumnWizard extends Widget
                 $this->strId
             );
 
-            if ($this->columnTemplate == '' && isset($arrHeaderItems) && \is_array($arrHeaderItems)) {
+            if ($this->columnTemplate === '' && isset($arrHeaderItems) && \is_array($arrHeaderItems)) {
                 $return .= \sprintf('<thead><tr>%s<th></th></tr></thead>', \implode("\n      ", $arrHeaderItems));
             }
 
@@ -1510,13 +1510,13 @@ class MultiColumnWizard extends Widget
         foreach ($arrItems as $k => $arrValue) {
             $return .= \sprintf('<tr data-rowId="%s">', $k);
             foreach ($arrValue as $itemValue) {
-                if ($itemValue['hide'] == true) {
+                if ($itemValue['hide'] === true) {
                     $itemValue['tl_class'] .= ' hidden';
                 }
 
                 $return .= '<td'
-                           . ($itemValue['valign'] != '' ? ' valign="' . $itemValue['valign'] . '"' : '')
-                           . ($itemValue['tl_class'] != '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
+                           . ($itemValue['valign'] !== '' ? ' valign="' . $itemValue['valign'] . '"' : '')
+                           . ($itemValue['tl_class'] !== '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
                            . '>'
                            . $itemValue['entry']
                            . '</td>';
@@ -1524,7 +1524,7 @@ class MultiColumnWizard extends Widget
 
             // insert buttons at the very end
             $return .= '<td class="operations col_last"'
-                       . (($this->buttonPos != '') ? ' valign="' . $this->buttonPos . '" ' : '')
+                       . (($this->buttonPos !== '') ? ' valign="' . $this->buttonPos . '" ' : '')
                        . '>'
                        . $strHidden;
             $return .= $this->generateButtonString($k);
@@ -1532,7 +1532,7 @@ class MultiColumnWizard extends Widget
             $return .= '</tr>';
         }
 
-        if ($onlyRows == false) {
+        if ($onlyRows === false) {
             $return .= '</tbody></table>';
             $return .= $this->generateScriptBlock($this->strId, $this->maxCount, $this->minCount);
         } else {
