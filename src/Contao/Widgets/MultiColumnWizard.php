@@ -983,19 +983,20 @@ class MultiColumnWizard extends Widget
 
                 // Build array of items
                 if (!empty($arrField['eval']['columnPos'])) {
-                    $arrItems[$i][$objWidget->columnPos]['entry']    =
+                    $arrItems[$i][$objWidget->columnPos]['entry']         =
                         ($arrItems[$i][$objWidget->columnPos]['entry'] ?? '') . $strWidget;
-                    $arrItems[$i][$objWidget->columnPos]['valign']   = ($arrField['eval']['valign'] ?? '');
-                    $arrItems[$i][$objWidget->columnPos]['tl_class'] = ($arrField['eval']['tl_class'] ?? '');
-                    $arrItems[$i][$objWidget->columnPos]['hide']     = $blnHiddenBody;
+                    $arrItems[$i][$objWidget->columnPos]['valign']        = ($arrField['eval']['valign'] ?? '');
+                    $arrItems[$i][$objWidget->columnPos]['tl_class']      = ($arrField['eval']['tl_class'] ?? '');
+                    $arrItems[$i][$objWidget->columnPos]['wrapper_style'] = ($arrField['eval']['wrapper_style'] ?? '');
+                    $arrItems[$i][$objWidget->columnPos]['hide']          = $blnHiddenBody;
                 } else {
-                    $arrItems[$i][$strKey] = array
-                    (
-                        'entry'    => $strWidget,
-                        'valign'   => $arrField['eval']['valign'] ?? null,
-                        'tl_class' => $arrField['eval']['tl_class'] ?? null,
-                        'hide'     => $blnHiddenBody
-                    );
+                    $arrItems[$i][$strKey] = [
+                        'entry'         => $strWidget,
+                        'valign'        => $arrField['eval']['valign'] ?? null,
+                        'tl_class'      => $arrField['eval']['tl_class'] ?? null,
+                        'wrapper_style' => $arrField['eval']['wrapper_style'] ?? null,
+                        'hide'          => $blnHiddenBody
+                    ];
                 }
             }
         }
@@ -1545,8 +1546,9 @@ class MultiColumnWizard extends Widget
                 }
 
                 $return .= '<td'
-                           . ($itemValue['valign'] != '' ? ' valign="' . $itemValue['valign'] . '"' : '')
-                           . ($itemValue['tl_class'] != '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
+                           . ($itemValue['valign'] !== '' ? ' valign="' . $itemValue['valign'] . '"' : '')
+                           . ($itemValue['tl_class'] !== '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
+                           . ($itemValue['wrapper_style'] !== '' ? ' style="' . $itemValue['wrapper_style'] . '"' : '')
                            . '>'
                            . $itemValue['entry']
                            . '</td>';
@@ -1665,7 +1667,7 @@ SCRIPT;
         $arrColorpicker,
         $strHidden,
         $arrItems,
-        $arrHiddenHeader = array()
+        $arrHiddenHeader = []
     ) {
         // generate header fields
         foreach ($this->columnFields as $strKey => $arrField) {
@@ -1708,7 +1710,7 @@ SCRIPT;
 
 
         // new array for items so we get rid of the ['entry'] and ['valign']
-        $arrReturnItems = array();
+        $arrReturnItems = [];
 
         foreach ($arrItems as $itemKey => $itemValue) {
             if ($itemValue['hide']) {
@@ -1716,9 +1718,12 @@ SCRIPT;
             }
 
             $arrReturnItems[$itemKey] = '<div'
-                                        . ($itemValue['tl_class'] != ''
+                                        . ($itemValue['tl_class'] !== ''
                                             ? ' class="' . $itemValue['tl_class'] . '"'
                                             : '')
+                                        . ($itemValue['wrapper_style'] !== ''
+                                             ? ' style="' . $itemValue['wrapper_style'] . '"'
+                                             : '')
                                         . '>'
                                         . $itemValue['entry']
                                         . '</div>';
