@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: PHP ${{ matrix.php }} ${{ matrix.contao }} Pull source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -48,7 +48,7 @@ jobs:
           coverage:    none
 
       - name: PHP ${{ matrix.php }} ${{ matrix.contao }} Cache composer cache directory
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: composer-cache-dir-${{ matrix.php }}-${{ matrix.contao }}
         with:
@@ -56,7 +56,7 @@ jobs:
           key:  ${{ runner.os }}-build-${{ env.cache-name }}
 
       - name: PHP ${{ matrix.php }} ${{ matrix.contao }} Cache vendor directory
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: composer-vendor-${{ matrix.php }}-${{ matrix.contao }}
         with:
@@ -78,7 +78,7 @@ jobs:
         run:  ./vendor/bin/phpcq run -v -o github-action -o default ${{ matrix.phpcq_flags }}
 
       - name: PHP ${{ matrix.php }} ${{ matrix.contao }} Upload build directory to artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if:   ${{ success() }} || ${{ failure() }}
         with:
           name: phpcq-builds-php-${{ matrix.php }}-${{ matrix.contao }}
