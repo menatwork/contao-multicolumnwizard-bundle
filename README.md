@@ -59,7 +59,7 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
                 'label'     => &$GLOBALS['TL_LANG']['tl_theme']['ts_client_browser'],
                 'exclude'   => true,
                 'inputType' => 'text',
-                'eval'      => [ 'style' => 'width:180px' ],
+                'eval'      => ['style' => 'width:180px'],
             ],
         ],
     ],
@@ -78,7 +78,7 @@ $GLOBALS['TL_DCA']['tl_table']['fields']['anything'] = [
     'inputType' => 'multiColumnWizard',
     'eval'      => [
         'mandatory'       => true,
-        'columnsCallback' => [ 'Class', 'Method' ],
+        'columnsCallback' => ['Class', 'Method'],
     ],
     'sql'       => 'blob NULL',
 ];
@@ -101,7 +101,7 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
                 'label'     => &$GLOBALS['TL_LANG']['tl_theme']['ts_client_browser'],
                 'exclude'   => true,
                 'inputType' => 'text',
-                'eval'      => [ 'style' => 'width:180px' ],
+                'eval'      => ['style' => 'width:180px'],
             ],
         ],
     ],
@@ -136,7 +136,7 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
                 'label'     => &$GLOBALS['TL_LANG']['tl_theme']['ts_client_browser'],
                 'exclude'   => true,
                 'inputType' => 'text',
-                'eval'      => [ 'style' => 'width:180px' ],
+                'eval'      => ['style' => 'width:180px'],
             ],
         ],
     ],
@@ -147,25 +147,43 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
 
 ### Other parameters
 
-From version 3.6.5:
+**From version 3.6.11:**
 
-The Symfony translator can be used to translate the label and description. To do this, set the `useTranslator`
-key to true.
+There is a new parameter `wrapper_style` in `eval` with which the enclosing element of a widget can be styled; in the
+standard output this is a table cell `td`.
+
+With the following specification:
 
 ```php
 <?php
-$GLOBALS['TL_DCA']['tl_theme']['fields']['anything'] = [
-//...
+$GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
     'inputType' => 'multiColumnWizard',
-    'eval'      => [
-        'useTranslator' => true,
-// ...
+    //...
+    'columnFields' => [
+        'ts_client_browser' => [
+            'label'     => &$GLOBALS['TL_LANG']['tl_theme']['ts_client_browser'],
+            'exclude'   => true,
+            'inputType' => 'text',
+            'eval'      => [
+                'wrapper_style' => 'width:47%',
+                'style'         => 'width:100%'
+            ],
+        ],
     ],
+    //...
 ];
 ?>
 ```
 
-From version 3.6.10:
+this source code is generated:
+
+```html
+<td style="width:47%" class="hidelabel mcwUpdateFields">
+  <input style="width:100%" type="text" name="mcwtest_default[0][ts_client_browser]" id="ctrl_mcwtest_default_row0_ts_client_browser" class="tl_text" value="" data-action="focus->contao--scroll-offset#store" data-contao--scroll-offset-target="autoFocus">
+</td>
+```
+
+**From version 3.6.10:**
 
 Use `default` in `eval` to set multiple default values and rows.
 
@@ -194,3 +212,21 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
 
 The descriptions of the columns are displayed in the column header as a tooltip next to the icon `🛈` - the
 character or text can be changed in the language file.
+
+**From version 3.6.5:**
+
+The Symfony translator can be used to translate the label and description. To do this, set the `useTranslator`
+key to true.
+
+```php
+<?php
+$GLOBALS['TL_DCA']['tl_theme']['fields']['anything'] = [
+//...
+    'inputType' => 'multiColumnWizard',
+    'eval'      => [
+        'useTranslator' => true,
+// ...
+    ],
+];
+?>
+```
