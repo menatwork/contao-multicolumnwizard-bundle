@@ -3,7 +3,7 @@
 /**
  * This file is part of menatwork/contao-multicolumnwizard-bundle.
  *
- * (c) 2012-2024 MEN AT WORK.
+ * (c) 2012-2025 MEN AT WORK.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -43,7 +43,7 @@
  * @author     David Greminger <david.greminger@1up.io>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH
- * @copyright  2013-2024 MEN AT WORK
+ * @copyright  2013-2025 MEN AT WORK
  * @license    https://github.com/menatwork/contao-multicolumnwizard-bundle/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
@@ -690,7 +690,7 @@ class MultiColumnWizard extends Widget
 
                 // Convert binary UUIDs for DC_File driver (see contao#6893)
                 if (
-                    $arrField['inputType'] == 'fileTree'
+                    $arrField['inputType'] === 'fileTree'
                     && 'DC_' . $GLOBALS['TL_DCA'][$this->strTable]['config']['dataContainer'] === DC_File::class
                 ) {
                     $varValue = StringUtil::deserialize($varValue);
@@ -709,7 +709,7 @@ class MultiColumnWizard extends Widget
                     // store the errors
                     $this->arrWidgetErrors[$strKey][$i] = $objWidget->getErrors();
 
-                    $blnHasError = Input::post('SUBMIT_TYPE') != 'auto';
+                    $blnHasError = Input::post('SUBMIT_TYPE') !== 'auto';
                 }
             }
         }
@@ -772,10 +772,10 @@ class MultiColumnWizard extends Widget
     public function generate($overwriteRowCurrentRow = null, $onlyRows = false)
     {
         $this->strCommand = 'cmd_' . $this->strField;
-        $arrUnique        = array();
-        $arrDatepicker    = array();
-        $arrColorpicker   = array();
-        $arrTinyMCE       = array();
+        $arrUnique        = [];
+        $arrDatepicker    = [];
+        $arrColorpicker   = [];
+        $arrTinyMCE       = [];
 
         foreach ($this->columnFields as $strKey => $arrField) {
             // Store unique fields
@@ -813,7 +813,7 @@ class MultiColumnWizard extends Widget
         }
 
         $intNumberOfRows = max(count($this->varValue), 1);
-        $useDefaultValue = (0 == count($this->varValue));
+        $useDefaultValue = (0 === count($this->varValue));
         if ($useDefaultValue && !empty($this->defaultValue)) {
             $intNumberOfRows = count($this->defaultValue);
         }
@@ -823,11 +823,11 @@ class MultiColumnWizard extends Widget
             $intNumberOfRows = $this->minCount;
         }
 
-        $arrItems        = array();
-        $arrHiddenHeader = array();
+        $arrItems        = [];
+        $arrHiddenHeader = [];
 
         if ($overwriteRowCurrentRow !== null) {
-            $i               = \intval($overwriteRowCurrentRow);
+            $i               = (int) $overwriteRowCurrentRow;
             $intNumberOfRows = ($i + 1);
         } else {
             $i = 0;
@@ -992,9 +992,9 @@ class MultiColumnWizard extends Widget
                 } else {
                     $arrItems[$i][$strKey] = [
                         'entry'         => $strWidget,
-                        'valign'        => $arrField['eval']['valign'] ?? null,
-                        'tl_class'      => $arrField['eval']['tl_class'] ?? null,
-                        'wrapper_style' => $arrField['eval']['wrapper_style'] ?? null,
+                        'valign'        => ($arrField['eval']['valign'] ?? ''),
+                        'tl_class'      => ($arrField['eval']['tl_class'] ?? ''),
+                        'wrapper_style' => ($arrField['eval']['wrapper_style'] ?? ''),
                         'hide'          => $blnHiddenBody
                     ];
                 }
@@ -1072,7 +1072,7 @@ class MultiColumnWizard extends Widget
         }
 
         // Toggle line wrap (textarea)
-        if (($arrField['inputType'] ?? null) == 'textarea' && empty($arrField['eval']['rte'])) {
+        if (($arrField['inputType'] ?? null) === 'textarea' && empty($arrField['eval']['rte'])) {
             $xlabel .= ' '
                        . Image::getHtml(
                            'wrap.gif',
@@ -1108,7 +1108,7 @@ class MultiColumnWizard extends Widget
         }
 
         // Add the popup file manager
-        if (($arrField['inputType'] ?? null) == 'fileTree' || ($arrField['inputType'] ?? null) == 'pageTree') {
+        if (($arrField['inputType'] ?? null) === 'fileTree' || ($arrField['inputType'] ?? null) === 'pageTree') {
             $path = '';
 
             if (isset($arrField['eval']['path'])) {
@@ -1129,8 +1129,8 @@ class MultiColumnWizard extends Widget
 
             // Add title at modal window.
             $GLOBALS['TL_DCA'][$this->strTable]['fields'][$arrField['strField']]['label'][0] =
-                (is_array($arrField['label']) && $arrField['label'][0] != '') ? $arrField['label'][0] : $strKey;
-        } elseif (($arrField['inputType'] ?? null) == 'tableWizard') {
+                (is_array($arrField['label']) && $arrField['label'][0] !== '') ? $arrField['label'][0] : $strKey;
+        } elseif (($arrField['inputType'] ?? null) === 'tableWizard') {
             // Add the table import wizard
             $xlabel .= ' <a href="'
                        . $this->addToUrl('key=table')
@@ -1242,7 +1242,7 @@ class MultiColumnWizard extends Widget
         // Convert date formats into timestamps (check the eval setting first -> #3063)
         $rgxp               = ($arrField['eval']['rgxp'] ?? '');
         $dateFormatErrorMsg = '';
-        if (($rgxp == 'date' || $rgxp == 'time' || $rgxp == 'datim') && $varValue != '') {
+        if (($rgxp === 'date' || $rgxp === 'time' || $rgxp === 'datim') && $varValue !== '') {
             try {
                 $objDate = new Date($varValue, $this->getNumericDateFormat($rgxp));
             } catch (\Exception $e) {
@@ -1258,6 +1258,7 @@ class MultiColumnWizard extends Widget
         $arrField['id']                = $this->strId . '_row' . $intRow . '_' . $strKey;
         $arrField['value']             = ((null !== $varValue) ? $varValue : ($arrField['default'] ?? null));
         $arrField['eval']['tableless'] = true;
+        $arrField['eval']['style']     = $this->cspUnsafeInlineStyle($arrField['eval']['style'] ?? '');
 
         $arrData = $this->handleDcGeneral($arrField, $strKey);
 
@@ -1519,7 +1520,7 @@ class MultiColumnWizard extends Widget
                 ' data-name="%s"' .
                 ' id="ctrl_%s"' .
                 ' class="tl_modulewizard multicolumnwizard">',
-                (($this->style) ? (\sprintf('style="%s"', $this->style)) : ('')),
+                (($this->style) ? (\sprintf('style="%s"', $this->cspUnsafeInlineStyle($this->style))) : ('')),
                 ($this->maxCount ? $this->maxCount : '0'),
                 ($this->minCount ? $this->minCount : '0'),
                 implode(',', $arrUnique),
@@ -1548,7 +1549,7 @@ class MultiColumnWizard extends Widget
                 $return .= '<td'
                            . ($itemValue['valign'] !== '' ? ' valign="' . $itemValue['valign'] . '"' : '')
                            . ($itemValue['tl_class'] !== '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
-                           . ($itemValue['wrapper_style'] !== '' ? ' style="' . $itemValue['wrapper_style'] . '"' : '')
+                           . ($itemValue['wrapper_style'] !== '' ? ' style="' . $this->cspUnsafeInlineStyle($itemValue['wrapper_style']) . '"' : '')
                            . '>'
                            . $itemValue['entry']
                            . '</td>';
@@ -1578,9 +1579,7 @@ class MultiColumnWizard extends Widget
      * Generates the javascript block for the mcw.
      *
      * @param string $strId    The html id of the element.
-     *
      * @param int    $maxCount The max amount of rows.
-     *
      * @param int    $minCount The min amount of rows.
      *
      * @return string
@@ -1588,7 +1587,6 @@ class MultiColumnWizard extends Widget
     protected function generateScriptBlock($strId, $maxCount, $minCount)
     {
         $script = <<<SCRIPT
-
 <script>
 window.addEvent("domready", function() {
     window["MCW_" + %s] = new MultiColumnWizard({
@@ -1601,13 +1599,7 @@ window.addEvent("domready", function() {
 </script>
 SCRIPT;
 
-        return sprintf(
-            $script,
-            json_encode($strId),
-            json_encode($strId),
-            intval($maxCount),
-            intval($minCount)
-        );
+        return sprintf($script, json_encode($strId), json_encode($strId), (int) $maxCount, (int) $minCount);
     }
 
     /**
@@ -1683,7 +1675,7 @@ SCRIPT;
         }
 
         $return  = '<div'
-                   . (($this->style) ? (' style="' . $this->style . '"') : '')
+                   . (($this->style) ? (' style="' . $this->cspUnsafeInlineStyle($this->style) . '"') : '')
                    . ' data-operations="maxCount['
                    . ($this->maxCount ? $this->maxCount : '0')
                    . '] minCount['
@@ -1722,7 +1714,7 @@ SCRIPT;
                                             ? ' class="' . $itemValue['tl_class'] . '"'
                                             : '')
                                         . ($itemValue['wrapper_style'] !== ''
-                                             ? ' style="' . $itemValue['wrapper_style'] . '"'
+                                             ? ' style="' . $this->cspUnsafeInlineStyle($itemValue['wrapper_style']) . '"'
                                              : '')
                                         . '>'
                                         . $itemValue['entry']
@@ -1760,8 +1752,7 @@ SCRIPT;
             $btnName = \sprintf('tw_r%s', StringUtil::specialchars($button));
             $return .=
                 \sprintf(
-                    '<a data-operations="%s" href="%s" class="widgetImage op-%s" title="%s"
-                         onclick="return false;">%s</a>',
+                    '<a data-operations="%s" href="%s" class="widgetImage op-%s" title="%s">%s</a>',
                     $button,
                     $this->addToUrl(
                         \sprintf(
