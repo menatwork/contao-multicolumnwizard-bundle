@@ -1549,7 +1549,9 @@ class MultiColumnWizard extends Widget
                 $return .= '<td'
                            . ($itemValue['valign'] !== '' ? ' valign="' . $itemValue['valign'] . '"' : '')
                            . ($itemValue['tl_class'] !== '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
-                           . ($itemValue['wrapper_style'] !== '' ? ' style="' . $this->cspUnsafeInlineStyle($itemValue['wrapper_style']) . '"' : '')
+                           . ($itemValue['wrapper_style'] !== ''
+                             ? ' style="' . $this->cspUnsafeInlineStyle($itemValue['wrapper_style']) . '"'
+                             : '')
                            . '>'
                            . $itemValue['entry']
                            . '</td>';
@@ -1714,7 +1716,8 @@ SCRIPT;
                                             ? ' class="' . $itemValue['tl_class'] . '"'
                                             : '')
                                         . ($itemValue['wrapper_style'] !== ''
-                                             ? ' style="' . $this->cspUnsafeInlineStyle($itemValue['wrapper_style']) . '"'
+                                             ? ' style="' . $this->cspUnsafeInlineStyle($itemValue['wrapper_style'])
+                                               . '"'
                                              : '')
                                         . '>'
                                         . $itemValue['entry']
