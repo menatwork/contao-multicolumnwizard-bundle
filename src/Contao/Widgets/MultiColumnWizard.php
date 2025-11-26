@@ -1848,11 +1848,12 @@ SCRIPT;
         return null;
     }
 
-    private function cspUnsafeInlineStyle(string $style): string
+    public function cspUnsafeInlineStyle(string $style, string $algorithm = 'sha384'): string
     {
         if (!method_exists(parent::class, 'cspUnsafeInlineStyle')) {
             return $style;
         }
-        return parent::cspUnsafeInlineStyle($style);
+
+        return parent::cspUnsafeInlineStyle($style, $algorithm);
     }
 }
