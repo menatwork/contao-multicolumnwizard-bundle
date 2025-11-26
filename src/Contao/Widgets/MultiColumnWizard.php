@@ -1284,7 +1284,6 @@ class MultiColumnWizard extends Widget
         return $objWidget;
     }
 
-
     /**
      * Build the widget.
      *
