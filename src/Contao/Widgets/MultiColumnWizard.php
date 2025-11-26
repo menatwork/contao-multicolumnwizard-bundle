@@ -1847,4 +1847,12 @@ SCRIPT;
 
         return null;
     }
+
+    private function cspUnsafeInlineStyle(string $style): string
+    {
+        if (!method_exists(parent::class, 'cspUnsafeInlineStyle')) {
+            return $style;
+        }
+        return parent::cspUnsafeInlineStyle($style);
+    }
 }
