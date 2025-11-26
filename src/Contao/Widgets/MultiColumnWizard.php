@@ -1258,7 +1258,15 @@ class MultiColumnWizard extends Widget
         $arrField['id']                = $this->strId . '_row' . $intRow . '_' . $strKey;
         $arrField['value']             = ((null !== $varValue) ? $varValue : ($arrField['default'] ?? null));
         $arrField['eval']['tableless'] = true;
-        $arrField['eval']['style']     = $this->cspUnsafeInlineStyle($arrField['eval']['style'] ?? '');
+
+        $style = $arrField['eval']['style'] ?? '';
+
+        // Forwards compatibility for Contao ^5.3
+        if (method_exists($this, 'cspUnsafeInlineStyle')) {
+            $style = $this->cspUnsafeInlineStyle($style);
+        }
+
+        $arrField['eval']['style'] = $style;
 
         $arrData = $this->handleDcGeneral($arrField, $strKey);
 
@@ -1275,6 +1283,7 @@ class MultiColumnWizard extends Widget
 
         return $objWidget;
     }
+
 
     /**
      * Build the widget.
@@ -1513,6 +1522,11 @@ class MultiColumnWizard extends Widget
                 }
             }
 
+            // Forwards compatibility for Contao ^5.3
+            if ($this->style && method_exists($this, 'cspUnsafeInlineStyle')) {
+                $this->style = $this->cspUnsafeInlineStyle($this->style);
+            }
+
             $return = \sprintf(
                 '<table %s' .
                 ' data-operations="maxCount[%s] minCount[%s] unique[%s] datepicker[%s]' .
@@ -1520,7 +1534,7 @@ class MultiColumnWizard extends Widget
                 ' data-name="%s"' .
                 ' id="ctrl_%s"' .
                 ' class="tl_modulewizard multicolumnwizard">',
-                (($this->style) ? (\sprintf('style="%s"', $this->cspUnsafeInlineStyle($this->style))) : ('')),
+                (($this->style) ? (\sprintf('style="%s"', $this->style)) : ('')),
                 ($this->maxCount ? $this->maxCount : '0'),
                 ($this->minCount ? $this->minCount : '0'),
                 implode(',', $arrUnique),
@@ -1546,11 +1560,16 @@ class MultiColumnWizard extends Widget
                     $itemValue['tl_class'] .= ' hidden';
                 }
 
+                // Forwards compatibility for Contao ^5.3
+                if ($itemValue['wrapper_style'] !== '' && method_exists($this, 'cspUnsafeInlineStyle')) {
+                    $itemValue['wrapper_style'] = $this->cspUnsafeInlineStyle($itemValue['wrapper_style']);
+                }
+
                 $return .= '<td'
                            . ($itemValue['valign'] !== '' ? ' valign="' . $itemValue['valign'] . '"' : '')
                            . ($itemValue['tl_class'] !== '' ? ' class="' . $itemValue['tl_class'] . '"' : '')
                            . ($itemValue['wrapper_style'] !== ''
-                             ? ' style="' . $this->cspUnsafeInlineStyle($itemValue['wrapper_style']) . '"'
+                             ? ' style="' . $itemValue['wrapper_style'] . '"'
                              : '')
                            . '>'
                            . $itemValue['entry']
@@ -1676,8 +1695,13 @@ SCRIPT;
             );
         }
 
+        // Forwards compatibility for Contao ^5.3
+        if ($this->style && method_exists($this, 'cspUnsafeInlineStyle')) {
+            $this->style = $this->cspUnsafeInlineStyle($this->style);
+        }
+
         $return  = '<div'
-                   . (($this->style) ? (' style="' . $this->cspUnsafeInlineStyle($this->style) . '"') : '')
+                   . (($this->style) ? (' style="' . $this->style . '"') : '')
                    . ' data-operations="maxCount['
                    . ($this->maxCount ? $this->maxCount : '0')
                    . '] minCount['
@@ -1711,12 +1735,17 @@ SCRIPT;
                 $itemValue['tl_class'] .= ' hidden';
             }
 
+            // Forwards compatibility for Contao ^5.3
+            if ($itemValue['wrapper_style'] !== '' && method_exists($this, 'cspUnsafeInlineStyle')) {
+                $itemValue['wrapper_style'] = $this->cspUnsafeInlineStyle($itemValue['wrapper_style']);
+            }
+
             $arrReturnItems[$itemKey] = '<div'
                                         . ($itemValue['tl_class'] !== ''
                                             ? ' class="' . $itemValue['tl_class'] . '"'
                                             : '')
                                         . ($itemValue['wrapper_style'] !== ''
-                                             ? ' style="' . $this->cspUnsafeInlineStyle($itemValue['wrapper_style'])
+                                             ? ' style="' . $itemValue['wrapper_style']
                                                . '"'
                                              : '')
                                         . '>'
