@@ -14,17 +14,9 @@ jobs:
       matrix:
         include:
           - contao: '~4.13.0'
-            php: '8.1'
-            phpcq_install: 'update'
-            phpcq_flags: ''
-          - contao: '~4.13.0'
             php: '8.2'
             phpcq_install: 'update'
             phpcq_flags: '--exit-0'
-          - contao:        '~5.3.0'
-            php:           '8.1'
-            phpcq_install: 'update'
-            phpcq_flags:   ''
           - contao:        '~5.3.0'
             php:           '8.2'
             phpcq_install: 'update'

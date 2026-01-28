@@ -677,13 +677,22 @@ class MultiColumnWizard extends Widget
                 // Save callback
                 if (isset($arrField['save_callback']) && is_array($arrField['save_callback'])) {
                     foreach ($arrField['save_callback'] as $callback) {
-                        $this->import($callback[0]);
+                        if (is_array($callback)) {
+                            $this->import($callback[0]);
 
-                        try {
-                            $varValue = $this->{$callback[0]}->{$callback[1]}($varValue, $this);
-                        } catch (\Exception $exception) {
-                            $objWidget->class = 'error';
-                            $objWidget->addError($exception->getMessage());
+                            try {
+                                $varValue = $this->{$callback[0]}->{$callback[1]}($varValue, $this);
+                            } catch (\Exception $exception) {
+                                $objWidget->class = 'error';
+                                $objWidget->addError($exception->getMessage());
+                            }
+                        } elseif (\is_callable($callback)) {
+                            try {
+                                $varValue = $callback($varValue, $this);
+                            } catch (\Exception $exception) {
+                                $objWidget->class = 'error';
+                                $objWidget->addError($exception->getMessage());
+                            }
                         }
                     }
                 }
