@@ -38,7 +38,7 @@ class ColorPickerTest extends TestCase
     {
         $stringUtilAdapter = $this
             ->getMockBuilder(Adapter::class)
-            ->setMethods(['specialchars'])
+            ->addMethods(['specialchars'])
             ->disableOriginalConstructor()
             ->getMock();
         $stringUtilAdapter
@@ -49,7 +49,7 @@ class ColorPickerTest extends TestCase
 
         $imageAdapter = $this
             ->getMockBuilder(Adapter::class)
-            ->setMethods(['getHtml'])
+            ->addMethods(['getHtml'])
             ->disableOriginalConstructor()
             ->getMock();
         $imageAdapter
