@@ -52,7 +52,7 @@ class DeprecatedAutoloaderTest extends TestCase
      *
      * @return array
      */
-    public function provideAliasClassMap()
+    public static function provideAliasClassMap()
     {
         $values = [];
         foreach (static::$classes as $alias => $class) {
