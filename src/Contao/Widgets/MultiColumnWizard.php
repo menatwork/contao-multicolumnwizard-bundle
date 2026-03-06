@@ -1766,10 +1766,11 @@ SCRIPT;
 
             $btnName = \sprintf('tw_r%s', StringUtil::specialchars($button));
             // Get a fallback icon if not found in the core.
-            if ('' === ($icon
-                    = Image::getHtml($image, $GLOBALS['TL_LANG']['MSC'][$btnName], 'class="tl_listwizard_img"'))) {
-                $icon
-                    = Image::getHtml(
+            if (
+                '' === ($icon
+                    = Image::getHtml($image, $GLOBALS['TL_LANG']['MSC'][$btnName], 'class="tl_listwizard_img"'))
+            ) {
+                $icon = Image::getHtml(
                         'bundles/multicolumnwizard/img/' . $image,
                         $GLOBALS['TL_LANG']['MSC'][$btnName],
                         'class="tl_listwizard_img"'
