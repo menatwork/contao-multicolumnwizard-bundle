@@ -1771,10 +1771,10 @@ SCRIPT;
                     = Image::getHtml($image, $GLOBALS['TL_LANG']['MSC'][$btnName], 'class="tl_listwizard_img"'))
             ) {
                 $icon = Image::getHtml(
-                        'bundles/multicolumnwizard/img/' . $image,
-                        $GLOBALS['TL_LANG']['MSC'][$btnName],
-                        'class="tl_listwizard_img"'
-                        );
+                    'bundles/multicolumnwizard/img/' . $image,
+                    $GLOBALS['TL_LANG']['MSC'][$btnName],
+                    'class="tl_listwizard_img"'
+                );
             }
             $return .=
                 \sprintf(
