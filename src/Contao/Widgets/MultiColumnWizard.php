@@ -1790,11 +1790,7 @@ SCRIPT;
                     ),
                     $button,
                     $GLOBALS['TL_LANG']['MSC'][$btnName],
-                    Image::getHtml(
-                        $image,
-                        $GLOBALS['TL_LANG']['MSC'][$btnName],
-                        'class="tl_listwizard_img"'
-                    )
+                    $icon
                 );
         }
 
