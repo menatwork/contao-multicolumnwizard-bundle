@@ -48,6 +48,10 @@
     padding-right: 0;
 }
 
+.multicolumnwizard td.col_last a {
+    display: inline-block;
+}
+
 .multicolumnwizard a[rel="move"] {
     cursor: move;
 }
