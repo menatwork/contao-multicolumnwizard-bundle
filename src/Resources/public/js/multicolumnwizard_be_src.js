@@ -897,7 +897,9 @@ MultiColumnWizard.addOperationClickCallback('down', MultiColumnWizard.downClick)
  * Patch Contao Core to support file & page tree
  */
 (function(Backend) {
-    if(!Backend) return;
+    if(!Backend || Backend.__mcwOpenModalSelector) return;
+    Backend.__mcwOpenModalSelector = true;
+    
     Backend.openModalSelectorOriginal = Backend.openModalSelector;
     Backend.openModalSelector = function(options) {
         Backend.openModalSelectorOriginal(options);
