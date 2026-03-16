@@ -1251,7 +1251,10 @@ class MultiColumnWizard extends Widget
         // Convert date formats into timestamps (check the eval setting first -> #3063)
         $rgxp               = ($arrField['eval']['rgxp'] ?? '');
         $dateFormatErrorMsg = '';
-        if (($rgxp === 'date' || $rgxp === 'time' || $rgxp === 'datim') && $varValue !== '') {
+        if (
+            ($rgxp === 'date' || $rgxp === 'time' || $rgxp === 'datim')
+            && ($varValue !== '' && $varValue !== null)
+        ) {
             try {
                 $objDate = new Date($varValue, $this->getNumericDateFormat($rgxp));
             } catch (\Exception $e) {
