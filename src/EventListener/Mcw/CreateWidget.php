@@ -78,8 +78,14 @@ class CreateWidget
         }
         $dcDriver->field = $fieldName;
 
+        // Resolve the field configuration. For nested MCWs the posted name is a bracket path like
+        // "base[1][sub]"; the configuration of "sub" then lives in the columnFields of "base", not
+        // as a top level DCA field.
+        $fieldConfig = $GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName]
+            ?? self::resolveNestedFieldConfig($fieldName, $dcDriver->table);
+
         // The field does not exist
-        if (!isset($GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName])) {
+        if (null === $fieldConfig) {
             $this->logger->log(
                 LogLevel::ERROR,
                 'Field "' . $fieldName . '" does not exist in DCA "' . $dcDriver->table . '"',
@@ -93,7 +99,7 @@ class CreateWidget
             throw new BadRequestHttpException('Bad request');
         }
 
-        $inputType = $GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName]['inputType'];
+        $inputType = $fieldConfig['inputType'];
 
         /** @var string $widgetClassName */
         $widgetClassName = $GLOBALS['BE_FFL'][$inputType];
@@ -102,7 +108,7 @@ class CreateWidget
         /** @var MultiColumnWizard $widgetClassName */
         $widget = new $widgetClassName(
             $widgetClassName::getAttributesFromDca(
-                $GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName],
+                $fieldConfig,
                 $dcDriver->inputName,
                 '',
                 $fieldName,
@@ -116,6 +122,51 @@ class CreateWidget
         $widget->activeRecord  = $dcDriver->activeRecord;
 
         $event->setWidget($widget);
+    }
+
+    /**
+     * Resolve the configuration of a (nested) MCW field from its posted name.
+     *
+     * For nested MCWs the posted field name is a bracket path like "base[1][sub]". The
+     * configuration of "sub" lives in the columnFields of "base" (recursively); numeric segments
+     * are row indices and carry no configuration. Returns null when the name is a plain top level
+     * field (handled by the caller) or cannot be resolved.
+     *
+     * @param string $fieldName The posted (possibly bracketed) field name.
+     * @param string $table     The table name.
+     *
+     * @return array|null The resolved field configuration or null.
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
+     */
+    private static function resolveNestedFieldConfig(string $fieldName, string $table): ?array
+    {
+        $segments = \preg_split('/[\[\]]+/', $fieldName, -1, PREG_SPLIT_NO_EMPTY);
+        if (empty($segments)) {
+            return null;
+        }
+
+        $baseField = \array_shift($segments);
+        if (!isset($GLOBALS['TL_DCA'][$table]['fields'][$baseField])) {
+            return null;
+        }
+
+        $config    = $GLOBALS['TL_DCA'][$table]['fields'][$baseField];
+        $descended = false;
+        foreach ($segments as $segment) {
+            // Row indices are numeric and carry no configuration.
+            if (\is_numeric($segment)) {
+                continue;
+            }
+            if (!isset($config['eval']['columnFields'][$segment])) {
+                return null;
+            }
+            $config    = $config['eval']['columnFields'][$segment];
+            $descended = true;
+        }
+
+        // Only return a result when we actually resolved a nested column field.
+        return $descended ? $config : null;
     }
 
     /**
