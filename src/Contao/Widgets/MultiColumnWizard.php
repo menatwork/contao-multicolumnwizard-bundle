@@ -982,6 +982,16 @@ class MultiColumnWizard extends Widget
                     $strWidget = str_replace(['reloadPagetree', 'reloadPagetreeDMA'], 'reloadPagetree_mcw', $strWidget);
                 }
 
+                // Contao 5 attaches the rich text editor per textarea via the be_tinyMCE template
+                // (contao--tinymce Stimulus controller) instead of the dropped $GLOBALS['TL_RTE'].
+                // Keep the init script inside the cell so it travels with the row when it is cloned
+                // (copy) and gets re-executed/renumbered there.
+                if (\in_array($strKey, $arrTinyMCE, true)) {
+                    $strWidget .= $this->generateTinyMceEditor(
+                        'ctrl_' . $this->strId . '_row' . $i . '_' . $strKey
+                    );
+                }
+
                 // Build array of items
                 if (!empty($arrField['eval']['columnPos'])) {
                     $arrItems[$i][$objWidget->columnPos]['entry']         =
@@ -1032,21 +1042,6 @@ class MultiColumnWizard extends Widget
                 $arrHiddenHeader,
                 $onlyRows
             );
-        }
-
-        // Contao 5 dropped the legacy $GLOBALS['TL_RTE'] mechanism. The rich text editor is now
-        // initialised per textarea through the be_tinyMCE template, which attaches the
-        // "contao--tinymce" Stimulus controller. Emit it for every rendered row of each tinyMCE
-        // column (works for the full table as well as for a single ajax-added row).
-        if (!empty($arrTinyMCE)) {
-            $startRow = ($overwriteRowCurrentRow !== null) ? (int) $overwriteRowCurrentRow : 0;
-            for ($intRteRow = $startRow; $intRteRow < $intNumberOfRows; $intRteRow++) {
-                foreach ($arrTinyMCE as $strRteKey) {
-                    $strOutput .= $this->generateTinyMceEditor(
-                        'ctrl_' . $this->strId . '_row' . $intRteRow . '_' . $strRteKey
-                    );
-                }
-            }
         }
 
         return $strOutput;

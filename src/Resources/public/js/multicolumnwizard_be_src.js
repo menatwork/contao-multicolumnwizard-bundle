@@ -384,87 +384,69 @@ var MultiColumnWizard = new Class(
         {
             var parent = row.getParent('.multicolumnwizard');
 
-            // skip if no tinymce class was found
-            if(parent.getElements('.tinymce').length == 0)
+            // skip if tinymce is unavailable or there is no rte column
+            if (typeof tinymce === 'undefined' || parent.getElements('textarea.tinymce').length === 0)
             {
                 return;
             }
 
-            var mcwName = parent.get('id');
-            var myRegex = new RegExp(mcwName);
-            var tinyMCEEditors = new Array();
-            var counter = 0;
-
-            var editorId = 'editorId';
-            if (tinymce.majorVersion > 3) {
-                editorId = 'id';
-            }
-
-            // get a list with tinymces
-            tinymce.editors.each(function(item, index){
-                if(item[editorId].match(myRegex) != null)
+            // Contao 5 initialises the editor per textarea via the be_tinyMCE template and the
+            // contao--tinymce Stimulus controller (the legacy $GLOBALS['TL_RTE'] mechanism is gone).
+            // Remove every editor and detach the controller so the editors can be re-created cleanly
+            // after the rows have been renumbered, moved or cloned. The content is written back to
+            // the textarea first.
+            parent.getElements('textarea.tinymce').each(function(textarea){
+                var editor = tinymce.get(textarea.get('id'));
+                if (editor)
                 {
-                    tinyMCEEditors[counter] = item[editorId];
-                    counter++;
-                }
-            });
-
-            // clear tinymces
-            tinyMCEEditors.each(function(item, index){
-                try {
-                    var editor = tinymce.get(item);
-                    $(editor[editorId]).set('text', editor.getContent());
+                    textarea.set('value', editor.getContent());
                     editor.remove();
-                } catch (e) {
-                    console.log(e)
                 }
-            });
 
-            // search for dmg tinymces
-            parent.getElements('span.mceEditor').each(function(item, index){
-                item.dispose();
-            });
+                var controllers = (textarea.getAttribute('data-controller') || '')
+                    .split(' ')
+                    .filter(function(name){ return name !== '' && name !== 'contao--tinymce'; });
 
-            // search for scripttags tinymces
-            parent.getElements('.tinymce').each(function(item, index){
-                item.getElements('script').each(function(item, index){
-                    item.dispose();
-                });
+                if (controllers.length > 0)
+                {
+                    textarea.setAttribute('data-controller', controllers.join(' '));
+                }
+                else
+                {
+                    textarea.removeAttribute('data-controller');
+                }
             });
         },
 
         reinitTinyMCE: function(el, row, isParent)
         {
-            var parent = null;
+            var parent = (isParent === true) ? row : row.getParent('.multicolumnwizard');
 
-            if(isParent != true)
-            {
-                parent = row.getParent('.multicolumnwizard');
-            }
-            else
-            {
-                parent = row;
-            }
-
-            // skip if no tinymce class was found
-            if(parent.getElements('.tinymce').length == 0)
+            // skip if tinymce is unavailable or there is no rte column
+            if (typeof tinymce === 'undefined' || parent.getElements('textarea.tinymce').length === 0)
             {
                 return;
             }
 
-            var varTinys = parent.getElements('.tinymce textarea');
+            // Cloned rows already carry the contao--tinymce controller (re-added by the re-executed
+            // be_tinyMCE script) and are (re)connected by Stimulus. Moved rows (up/down) lost their
+            // controller in killAllTinyMCE, so initialise them directly from the configuration that
+            // the be_tinyMCE template attached to the textarea.
+            parent.getElements('textarea.tinymce').each(function(textarea){
+                if (!textarea.tinymceConfig)
+                {
+                    return; // no rte config attached
+                }
+                if (tinymce.get(textarea.get('id')))
+                {
+                    return; // editor already present
+                }
+                if ((textarea.getAttribute('data-controller') || '').indexOf('contao--tinymce') !== -1)
+                {
+                    return; // Stimulus will (re)connect this one
+                }
 
-            var addEditorCommand = 'mceAddControl';
-            if (tinymce.majorVersion > 3) {
-                addEditorCommand = 'mceAddEditor';
-            }
-
-            varTinys.each(function(item, index){
-
-                tinymce.execCommand(addEditorCommand, false, item.get('id'));
-                tinymce.get(item.get('id')).show();
-                $(item.get('id')).erase('required');
-                $(tinymce.get(item.get('id')).editorContainer).getElements('iframe')[0].set('title','MultiColumnWizard - TinyMCE');
+                tinymce.init(Object.assign({}, textarea.tinymceConfig, { target: textarea }));
             });
         },
 
@@ -793,6 +775,17 @@ Object.append(MultiColumnWizard,
             var parent = row.getParent('.multicolumnwizard');
 
             if (row.getSiblings().length > 0) {
+                // Remove the TinyMCE editors of this row before destroying it, otherwise the editor
+                // instances (Contao 5 / contao--tinymce) would be orphaned.
+                if (typeof tinymce !== 'undefined') {
+                    row.getElements('textarea.tinymce').each(function(textarea){
+                        var editor = tinymce.get(textarea.get('id'));
+                        if (editor) {
+                            editor.remove();
+                        }
+                    });
+                }
+
                 //get all following rows
                 var rows = row.getAllNext();
                 //extract the current level
