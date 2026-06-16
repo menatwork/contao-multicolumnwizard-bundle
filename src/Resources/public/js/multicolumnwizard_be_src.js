@@ -324,7 +324,12 @@ var MultiColumnWizard = new Class(
             new Sortables(tr.getParent('table').getElement('tbody'), {
                 constrain: true,
                 opacity: 0.6,
-                handle: 'a[data-operations=move]',
+                // Scope the drag handle to this row's own operations container (direct child with
+                // class col_last - the operations <td> in table layout and the buttons <div> in
+                // tableless layout). Without the child combinator a nested MCW's move handle (which
+                // appears earlier in the row) would be picked up, so the outer row could not be
+                // dragged.
+                handle: '> .col_last a[data-operations=move]',
                 onStart: function() {
                     // Tear down the TinyMCE editors before a row (including its editor iframe) is
                     // dragged, otherwise moving the DOM node destroys the editor state.
