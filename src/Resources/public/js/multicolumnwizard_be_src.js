@@ -320,18 +320,26 @@ var MultiColumnWizard = new Class(
          * @param element move button
          */
         dragAndDrop: function(tr, link) {
+            var self = this;
             new Sortables(tr.getParent('table').getElement('tbody'), {
                 constrain: true,
                 opacity: 0.6,
                 handle: 'a[data-operations=move]',
+                onStart: function() {
+                    // Tear down the TinyMCE editors before a row (including its editor iframe) is
+                    // dragged, otherwise moving the DOM node destroys the editor state.
+                    self.killAllTinyMCE(link, tr);
+                },
                 onComplete: function() {
                     tr.getParent('table').getElement('tbody').getChildren('tr').each(function(el, i) {
                         //Must be substract down 1 because the loop iterator begins with 1
                         var level = i--;
-                        this.updateRowAttributes(level, el);
-                    }, this);
+                        self.updateRowAttributes(level, el);
+                    });
 
-                }.bind(this)
+                    // Re-create the editors after the rows have been renumbered.
+                    self.reinitTinyMCE(link, tr, false);
+                }
             });
         },
 
