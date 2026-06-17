@@ -145,6 +145,29 @@ $GLOBALS['TL_DCA']['tl_theme']['fields']['templateSelection'] = [
 ?>
 ```
 
+### Twig rendering and legacy template fallback
+
+**From version 4.x (Contao 5.7+):**
+
+The widget now renders via a Twig template by default
+(`@MenAtWorkMultiColumnWizardBundle/backend/widget/multi_column_wizard.html.twig`).
+All data is pre-processed in PHP and passed to the template as structured variables — no business logic
+runs inside the template itself.
+
+If you need to fall back to the legacy PHP/HTML rendering (e.g. you are using a custom `columnTemplate`
+or need time to migrate), add the following to your Symfony configuration:
+
+```yaml
+# config/packages/multicolumnwizard-bundle.yaml
+multicolumnwizard-bundle:
+    use_legacy_template: true
+```
+
+When `use_legacy_template` is `false` (the default) **and** no `columnTemplate` is set on the field,
+the Twig renderer is used. As soon as `use_legacy_template` is `true` **or** a `columnTemplate` is
+configured on the DCA field, the classic `generateTable()` / `generateDiv()` / `generateTemplateOutput()`
+path is used instead.
+
 ### Other parameters
 
 **From version 3.6.11:**

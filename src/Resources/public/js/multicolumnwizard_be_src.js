@@ -320,18 +320,27 @@ var MultiColumnWizard = new Class(
          * @param element move button
          */
         dragAndDrop: function(tr, link) {
+            var self = this;
             new Sortables(tr.getParent('table').getElement('tbody'), {
                 constrain: true,
                 opacity: 0.6,
-                handle: 'a[data-operations=move]',
+                // Scope the handle to the direct operations cell (> .col_last) so that a nested
+                // MCW's move button does not accidentally trigger a drag on the outer row.
+                handle: '> .col_last a[data-operations=move]',
+                onStart: function() {
+                    // Tear down editors before the row (including its iframe) is moved in the DOM.
+                    self.killAllTinyMCE(link, tr);
+                },
                 onComplete: function() {
                     tr.getParent('table').getElement('tbody').getChildren('tr').each(function(el, i) {
                         //Must be substract down 1 because the loop iterator begins with 1
                         var level = i--;
-                        this.updateRowAttributes(level, el);
-                    }, this);
+                        self.updateRowAttributes(level, el);
+                    });
 
-                }.bind(this)
+                    // Re-create editors after rows have been renumbered.
+                    self.reinitTinyMCE(link, tr, false);
+                }
             });
         },
 
@@ -384,87 +393,79 @@ var MultiColumnWizard = new Class(
         {
             var parent = row.getParent('.multicolumnwizard');
 
-            // skip if no tinymce class was found
-            if(parent.getElements('.tinymce').length == 0)
+            // skip if tinymce is unavailable or there is no rte column
+            if (typeof tinymce === 'undefined' || parent.getElements('textarea.tinymce').length === 0)
             {
                 return;
             }
 
-            var mcwName = parent.get('id');
-            var myRegex = new RegExp(mcwName);
-            var tinyMCEEditors = new Array();
-            var counter = 0;
-
-            var editorId = 'editorId';
-            if (tinymce.majorVersion > 3) {
-                editorId = 'id';
-            }
-
-            // get a list with tinymces
-            tinymce.editors.each(function(item, index){
-                if(item[editorId].match(myRegex) != null)
+            // Write editor content back to textarea, remove the editor instance, and detach
+            // the contao--tinymce Stimulus controller (Contao 5) so it is not auto-reconnected.
+            // In Contao 4 the data-controller attribute is absent — the filter is a no-op there.
+            parent.getElements('textarea.tinymce').each(function(textarea){
+                var editor = tinymce.get(textarea.get('id'));
+                if (editor)
                 {
-                    tinyMCEEditors[counter] = item[editorId];
-                    counter++;
-                }
-            });
-
-            // clear tinymces
-            tinyMCEEditors.each(function(item, index){
-                try {
-                    var editor = tinymce.get(item);
-                    $(editor[editorId]).set('text', editor.getContent());
+                    textarea.set('value', editor.getContent());
                     editor.remove();
-                } catch (e) {
-                    console.log(e)
                 }
-            });
 
-            // search for dmg tinymces
-            parent.getElements('span.mceEditor').each(function(item, index){
-                item.dispose();
-            });
+                var controllers = (textarea.getAttribute('data-controller') || '')
+                    .split(' ')
+                    .filter(function(name){ return name !== '' && name !== 'contao--tinymce'; });
 
-            // search for scripttags tinymces
-            parent.getElements('.tinymce').each(function(item, index){
-                item.getElements('script').each(function(item, index){
-                    item.dispose();
-                });
+                if (controllers.length > 0)
+                {
+                    textarea.setAttribute('data-controller', controllers.join(' '));
+                }
+                else
+                {
+                    textarea.removeAttribute('data-controller');
+                }
             });
         },
 
         reinitTinyMCE: function(el, row, isParent)
         {
-            var parent = null;
+            var parent = (isParent === true) ? row : row.getParent('.multicolumnwizard');
 
-            if(isParent != true)
-            {
-                parent = row.getParent('.multicolumnwizard');
-            }
-            else
-            {
-                parent = row;
-            }
-
-            // skip if no tinymce class was found
-            if(parent.getElements('.tinymce').length == 0)
+            // skip if tinymce is unavailable or there is no rte column
+            if (typeof tinymce === 'undefined' || parent.getElements('textarea.tinymce').length === 0)
             {
                 return;
             }
 
-            var varTinys = parent.getElements('.tinymce textarea');
+            parent.getElements('textarea.tinymce').each(function(textarea){
+                var id = textarea.get('id');
 
-            var addEditorCommand = 'mceAddControl';
-            if (tinymce.majorVersion > 3) {
-                addEditorCommand = 'mceAddEditor';
-            }
+                if (tinymce.get(id))
+                {
+                    return; // editor already present
+                }
 
-            varTinys.each(function(item, index){
+                // Contao 5: the be_tinyMCE template attaches the config object directly to the
+                // textarea element. Use it to re-initialise the editor after rows are renumbered.
+                if (textarea.tinymceConfig)
+                {
+                    // If the contao--tinymce Stimulus controller is still attached, Stimulus will
+                    // reconnect the editor automatically — nothing to do here.
+                    if ((textarea.getAttribute('data-controller') || '').indexOf('contao--tinymce') !== -1)
+                    {
+                        return;
+                    }
 
-                tinymce.execCommand(addEditorCommand, false, item.get('id'));
-                tinymce.get(item.get('id')).show();
-                $(item.get('id')).erase('required');
-                $(tinymce.get(item.get('id')).editorContainer).getElements('iframe')[0].set('title','MultiColumnWizard - TinyMCE');
+                    tinymce.init(Object.assign({}, textarea.tinymceConfig, { target: textarea }));
+                    return;
+                }
+
+                // Contao 4 fallback: initialise via execCommand.
+                var addEditorCommand = tinymce.majorVersion > 3 ? 'mceAddEditor' : 'mceAddControl';
+                tinymce.execCommand(addEditorCommand, false, id);
+                if (tinymce.get(id))
+                {
+                    tinymce.get(id).show();
+                    $(id).erase('required');
+                }
             });
         },
 
@@ -793,6 +794,17 @@ Object.append(MultiColumnWizard,
             var parent = row.getParent('.multicolumnwizard');
 
             if (row.getSiblings().length > 0) {
+                // Remove TinyMCE editors of this row before destroying it to avoid orphaned
+                // editor instances (relevant for Contao 5 / contao--tinymce controller).
+                if (typeof tinymce !== 'undefined') {
+                    row.getElements('textarea.tinymce').each(function(textarea){
+                        var editor = tinymce.get(textarea.get('id'));
+                        if (editor) {
+                            editor.remove();
+                        }
+                    });
+                }
+
                 //get all following rows
                 var rows = row.getAllNext();
                 //extract the current level

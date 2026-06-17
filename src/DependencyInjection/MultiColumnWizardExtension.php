@@ -3,7 +3,7 @@
 /**
  * This file is part of menatwork/contao-multicolumnwizard-bundle.
  *
- * (c) 2012-2021 MEN AT WORK.
+ * (c) 2012-2025 MEN AT WORK.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,7 +16,7 @@
  * @author     Stefan Heimes <stefan_heimes@hotmail.com>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH
- * @copyright  2013-2021 MEN AT WORK
+ * @copyright  2013-2025 MEN AT WORK
  * @license    https://github.com/menatwork/contao-multicolumnwizard-bundle/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
@@ -26,12 +26,13 @@ namespace MenAtWork\MultiColumnWizardBundle\DependencyInjection;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 /**
  * Class MultiColumnWizardExtension
  */
-class MultiColumnWizardExtension extends Extension
+class MultiColumnWizardExtension extends Extension implements PrependExtensionInterface
 {
     /**
      * The config files.
@@ -52,9 +53,24 @@ class MultiColumnWizardExtension extends Extension
     }
 
     /**
+     * Register the MCW Twig template path so templates are accessible as
+     * @MenAtWorkMultiColumnWizardBundle/...
+     *
      * {@inheritdoc}
      */
-    public function load(array $mergedConfig, ContainerBuilder $container)
+    public function prepend(ContainerBuilder $container): void
+    {
+        $container->prependExtensionConfig('twig', [
+            'paths' => [
+                __DIR__ . '/../Resources/views' => 'MenAtWorkMultiColumnWizardBundle',
+            ],
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new YamlFileLoader(
             $container,
@@ -64,5 +80,12 @@ class MultiColumnWizardExtension extends Extension
         foreach ($this->files as $file) {
             $loader->load($file);
         }
+
+        $config = $this->processConfiguration(new Configuration(), $configs);
+
+        $container->setParameter(
+            'men_at_work.multi_column_wizard.use_legacy_template',
+            $config['use_legacy_template']
+        );
     }
 }

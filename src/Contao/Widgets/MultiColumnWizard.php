@@ -71,6 +71,7 @@ use MenAtWork\MultiColumnWizardBundle\Event\GetDcaPickerWizardStringEvent;
 use MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Twig\Environment as TwigEnvironment;
 
 /**
  * Class MultiColumnWizard
@@ -807,14 +808,18 @@ class MultiColumnWizard extends Widget
                 isset($arrField['eval']['rte']) && $arrField['eval']['rte']
                 && strncmp($arrField['eval']['rte'], 'tiny', 4) === 0
             ) {
-                foreach ($this->varValue as $row => $value) {
-                    $tinyId = 'ctrl_' . $this->strField . '_row' . $row . '_' . $strKey;
+                // Contao 5 no longer evaluates $GLOBALS['TL_RTE']; the editor is attached per
+                // textarea via the be_tinyMCE template (Stimulus controller contao--tinymce).
+                if (version_compare($this->contaoApi->getContaoVersion(), '5.0', '<')) {
+                    foreach ($this->varValue as $row => $value) {
+                        $tinyId = 'ctrl_' . $this->strField . '_row' . $row . '_' . $strKey;
 
-                    $GLOBALS['TL_RTE']['tinyMCE'][$tinyId] = array(
-                        'id'   => $tinyId,
-                        'file' => 'tinyMCE',
-                        'type' => null
-                    );
+                        $GLOBALS['TL_RTE']['tinyMCE'][$tinyId] = array(
+                            'id'   => $tinyId,
+                            'file' => 'tinyMCE',
+                            'type' => null
+                        );
+                    }
                 }
 
                 $arrTinyMCE[] = $strKey;
@@ -834,6 +839,7 @@ class MultiColumnWizard extends Widget
 
         $arrItems        = [];
         $arrHiddenHeader = [];
+        $arrHiddenByRow  = [];
 
         if ($overwriteRowCurrentRow !== null) {
             $i               = (int) $overwriteRowCurrentRow;
@@ -1008,6 +1014,25 @@ class MultiColumnWizard extends Widget
                     ];
                 }
             }
+
+            // Collect hidden fields per row for the Twig renderer.
+            $arrHiddenByRow[$i] = $strHidden;
+        }
+
+        // Route to Twig renderer unless legacy mode is active or a custom columnTemplate is set.
+        $useLegacyTemplate = (bool) System::getContainer()
+            ->getParameter('men_at_work.multi_column_wizard.use_legacy_template');
+
+        if (!$useLegacyTemplate && empty($this->columnTemplate)) {
+            return $this->generateTwig(
+                $arrUnique,
+                $arrDatepicker,
+                $arrColorpicker,
+                $arrHiddenByRow,
+                $arrItems,
+                $arrHiddenHeader,
+                $onlyRows
+            );
         }
 
         if ($this->blnTableless) {
@@ -1642,6 +1667,169 @@ SCRIPT;
         $objTemplate->buttons = $arrButtons;
 
         return $objTemplate->parse();
+    }
+
+    /**
+     * Renders the MCW widget using a Twig template.
+     *
+     * All data is pre-processed here so the template contains no business logic.
+     *
+     * @param array $arrUnique       Fields with unique constraint.
+     * @param array $arrDatepicker   Fields with date-picker.
+     * @param array $arrColorpicker  Fields with color-picker.
+     * @param array $arrHiddenByRow  Hidden input HTML indexed by row ID.
+     * @param array $arrItems        Rendered cell data, indexed by [rowId][fieldKey].
+     * @param array $arrHiddenHeader Fields that are hidden in the header.
+     * @param bool  $onlyRows        True when called for AJAX row creation.
+     *
+     * @return string
+     */
+    protected function generateTwig(
+        array $arrUnique,
+        array $arrDatepicker,
+        array $arrColorpicker,
+        array $arrHiddenByRow,
+        array $arrItems,
+        array $arrHiddenHeader,
+        bool  $onlyRows
+    ): string {
+        $operations = implode(' ', [
+            'maxCount[' . ($this->maxCount ?: 0) . ']',
+            'minCount[' . ($this->minCount ?: 0) . ']',
+            'unique[' . implode(',', $arrUnique) . ']',
+            'datepicker[' . implode(',', $arrDatepicker) . ']',
+            'colorpicker[' . implode(',', $arrColorpicker) . ']',
+        ]);
+
+        /** @var TwigEnvironment $twig */
+        $twig = System::getContainer()->get('twig');
+
+        return $twig->render(
+            '@MenAtWorkMultiColumnWizardBundle/backend/widget/multi_column_wizard.html.twig',
+            [
+                'id'          => $this->strId,
+                'name'        => $this->name,
+                'style'       => $this->style ? $this->cspUnsafeInlineStyle($this->style) : '',
+                'tableless'   => $this->blnTableless,
+                'only_rows'   => $onlyRows,
+                'operations'  => $operations,
+                'button_pos'  => $this->buttonPos ?? '',
+                'show_header' => !$onlyRows && count($this->columnFields) !== count($arrHiddenHeader),
+                'headers'     => $onlyRows ? [] : $this->buildTwigHeaders($arrHiddenHeader),
+                'rows'        => $this->buildTwigRows($arrItems, $arrHiddenByRow),
+                'script'      => $onlyRows ? '' : $this->generateScriptBlock(
+                    $this->strId,
+                    $this->maxCount,
+                    $this->minCount
+                ),
+            ]
+        );
+    }
+
+    /**
+     * Builds the structured header data array for the Twig template.
+     *
+     * @param array $arrHiddenHeader Fields that are hidden in the header.
+     *
+     * @return array
+     */
+    private function buildTwigHeaders(array $arrHiddenHeader): array
+    {
+        $headers = [];
+
+        foreach ($this->columnFields as $strKey => $arrField) {
+            // Fields merged into a shared column position render as an empty th placeholder.
+            if (!empty($arrField['eval']['columnPos'])) {
+                $headers[] = ['empty' => true];
+                continue;
+            }
+
+            $bothHidden = (($arrField['eval']['hideBody'] ?? false) && ($arrField['eval']['hideHead'] ?? false));
+            $isHidden   = array_key_exists($strKey, $arrHiddenHeader);
+
+            $headers[] = [
+                'empty'            => false,
+                'key'              => $strKey,
+                'label'            => $this->getLabel($arrField, $strKey),
+                'mandatory'        => !empty($arrField['eval']['mandatory']),
+                'mandatory_label'  => $GLOBALS['TL_LANG']['MSC']['mandatory'] ?? '',
+                'description'      => $this->getDescription($arrField),
+                'description_char' => $GLOBALS['TL_LANG']['MSC']['description_char'] ?? '',
+                'hidden'           => $isHidden,
+                'both_hidden'      => $bothHidden,
+            ];
+        }
+
+        return $headers;
+    }
+
+    /**
+     * Builds the structured row data array for the Twig template.
+     *
+     * @param array $arrItems       Rendered cell data, indexed by [rowId][fieldKey].
+     * @param array $arrHiddenByRow Hidden input HTML indexed by row ID.
+     *
+     * @return array
+     */
+    private function buildTwigRows(array $arrItems, array $arrHiddenByRow): array
+    {
+        $rows = [];
+
+        foreach ($arrItems as $rowId => $arrCells) {
+            $cells = [];
+            foreach ($arrCells as $cellData) {
+                $class = trim($cellData['tl_class'] . ($cellData['hide'] ? ' hidden' : ''));
+                $cells[] = [
+                    'widget' => $cellData['entry'],
+                    'valign' => $cellData['valign'],
+                    'class'  => $class,
+                    'style'  => $cellData['wrapper_style'] !== ''
+                        ? $this->cspUnsafeInlineStyle($cellData['wrapper_style'])
+                        : '',
+                ];
+            }
+
+            $rows[$rowId] = [
+                'cells'         => $cells,
+                'hidden_fields' => $arrHiddenByRow[$rowId] ?? '',
+                'buttons'       => $this->buildButtonData($rowId),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Builds the button data array for a given row, for use in the Twig template.
+     *
+     * @param int|string $rowId The row identifier (used as cid in the URL).
+     *
+     * @return array
+     */
+    private function buildButtonData($rowId): array
+    {
+        $buttons = [];
+
+        foreach ($this->arrButtons as $operation => $image) {
+            if ($image === false) {
+                continue;
+            }
+
+            $btnKey  = sprintf('tw_r%s', StringUtil::specialchars($operation));
+            $title   = $GLOBALS['TL_LANG']['MSC'][$btnKey] ?? $operation;
+            $href    = $this->addToUrl(
+                sprintf('&%s=%s&cid=%s&id=', $this->strCommand, $operation, $rowId)
+            );
+
+            $buttons[] = [
+                'operation' => $operation,
+                'href'      => $href,
+                'title'     => $title,
+                'image'     => Image::getHtml($image, $title, 'class="tl_listwizard_img"'),
+            ];
+        }
+
+        return $buttons;
     }
 
     /**

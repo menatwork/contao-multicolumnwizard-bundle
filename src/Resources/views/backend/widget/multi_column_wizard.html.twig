@@ -1,0 +1,202 @@
+{% trans_default_domain 'contao_default' %}
+
+{% if not only_rows %}
+    {% if tableless %}
+
+        {# ------------------------------------------------------------------ #}
+        {# DIV / TABLELESS MODE                                                #}
+        {# ------------------------------------------------------------------ #}
+
+        {% set container_attributes = attrs()
+            .set('id', 'ctrl_' ~ id)
+            .set('data-name', name)
+            .set('data-operations', operations)
+            .addClass(['tl_modulewizard', 'multicolumnwizard'])
+            .addStyle(style|default)
+        %}
+        <div{{ container_attributes }}>
+
+            {% if show_header %}
+                <div class="header_fields">
+                    {% for header in headers %}
+                        {% if header.empty %}
+                            <div></div>
+                        {% else %}
+                            {% set header_div_attributes = attrs()
+                                .addClass(header.key|default)
+                                .addClass('hidden', header.hidden)
+                            %}
+                            <div{{ header_div_attributes }}>{{ header.label }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for row_id, row in rows %}
+                {% set row_attributes = attrs()
+                    .set('data-row-id', row_id)
+                    .addClass('mcw_row')
+                %}
+                <div{{ row_attributes }}>
+                    {% for cell in row.cells %}
+                        {% set cell_attributes = attrs()
+                            .addClass(cell.class|default)
+                            .addStyle(cell.style|default)
+                        %}
+                        <div{{ cell_attributes }}>{{ cell.widget|raw }}</div>
+                    {% endfor %}
+
+                    <div class="col_last buttons"{% if button_pos %} style="vertical-align: {{ button_pos }}"{% endif %}>
+                        {{ row.hidden_fields|raw }}
+                        {% for button in row.buttons %}
+                            <a data-operations="{{ button.operation }}"
+                               href="{{ button.href }}"
+                               class="widgetImage op-{{ button.operation }}"
+                               title="{{ button.title }}">{{ button.image|raw }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        {# ------------------------------------------------------------------ #}
+        {# TABLE MODE (default)                                                #}
+        {# ------------------------------------------------------------------ #}
+
+        {% set table_attributes = attrs()
+            .set('id', 'ctrl_' ~ id)
+            .set('data-name', name)
+            .set('data-operations', operations)
+            .addClass(['tl_modulewizard', 'multicolumnwizard'])
+            .addStyle(style|default)
+        %}
+        <table{{ table_attributes }}>
+
+            {% if show_header %}
+                <thead>
+                <tr>
+                    {% for header in headers %}
+                        {% if header.empty %}
+                            <th></th>
+                        {% elseif header.both_hidden %}
+                            <th{% if header.hidden %} class="hidden"{% endif %}>
+                                {{ header.label }}
+                            </th>
+                        {% else %}
+                            <th>
+                                {% if header.hidden %}<div class="hidden">{% endif %}
+                                {% if header.mandatory %}
+                                    <span class="invisible">{{ header.mandatory_label }} </span>
+                                {% endif %}
+                                {{ header.label }}
+                                {% if header.mandatory %}
+                                    <span class="mandatory">*</span>
+                                {% endif %}
+                                {% if header.description %}
+                                    <span title="{{ header.description }}">{{ header.description_char }}</span>
+                                {% endif %}
+                                {% if header.hidden %}</div>{% endif %}
+                            </th>
+                        {% endif %}
+                    {% endfor %}
+                    <th></th>{# operations column #}
+                </tr>
+                </thead>
+            {% endif %}
+
+            <tbody>
+            {% for row_id, row in rows %}
+                <tr data-row-id="{{ row_id }}">
+                    {% for cell in row.cells %}
+                        {% set cell_attributes = attrs()
+                            .set('valign', cell.valign|default, cell.valign is defined and cell.valign != '')
+                            .addClass(cell.class|default)
+                            .addStyle(cell.style|default)
+                        %}
+                        <td{{ cell_attributes }}>{{ cell.widget|raw }}</td>
+                    {% endfor %}
+
+                    <td class="operations col_last"{% if button_pos %} valign="{{ button_pos }}"{% endif %}>
+                        {{ row.hidden_fields|raw }}
+                        {% for button in row.buttons %}
+                            <a data-operations="{{ button.operation }}"
+                               href="{{ button.href }}"
+                               class="widgetImage op-{{ button.operation }}"
+                               title="{{ button.title }}">{{ button.image|raw }}</a>
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+
+    {% endif %}
+
+    {{ script|raw }}
+
+{% else %}
+
+    {# ------------------------------------------------------------------ #}
+    {# AJAX / ONLY_ROWS MODE — just the row markup, no outer container    #}
+    {# ------------------------------------------------------------------ #}
+
+    {% if tableless %}
+
+        {% for row_id, row in rows %}
+            {% set row_attributes = attrs()
+                .set('data-row-id', row_id)
+                .addClass('mcw_row')
+            %}
+            <div{{ row_attributes }}>
+                {% for cell in row.cells %}
+                    {% set cell_attributes = attrs()
+                        .addClass(cell.class|default)
+                        .addStyle(cell.style|default)
+                    %}
+                    <div{{ cell_attributes }}>{{ cell.widget|raw }}</div>
+                {% endfor %}
+
+                <div class="col_last buttons"{% if button_pos %} style="vertical-align: {{ button_pos }}"{% endif %}>
+                    {{ row.hidden_fields|raw }}
+                    {% for button in row.buttons %}
+                        <a data-operations="{{ button.operation }}"
+                           href="{{ button.href }}"
+                           class="widgetImage op-{{ button.operation }}"
+                           title="{{ button.title }}">{{ button.image|raw }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+
+    {% else %}
+
+        {% for row_id, row in rows %}
+            <tr data-row-id="{{ row_id }}">
+                {% for cell in row.cells %}
+                    {% set cell_attributes = attrs()
+                        .set('valign', cell.valign|default, cell.valign is defined and cell.valign != '')
+                        .addClass(cell.class|default)
+                        .addStyle(cell.style|default)
+                    %}
+                    <td{{ cell_attributes }}>{{ cell.widget|raw }}</td>
+                {% endfor %}
+
+                <td class="operations col_last"{% if button_pos %} valign="{{ button_pos }}"{% endif %}>
+                    {{ row.hidden_fields|raw }}
+                    {% for button in row.buttons %}
+                        <a data-operations="{{ button.operation }}"
+                           href="{{ button.href }}"
+                           class="widgetImage op-{{ button.operation }}"
+                           title="{{ button.title }}">{{ button.image|raw }}</a>
+                    {% endfor %}
+                </td>
+            </tr>
+        {% endfor %}
+
+    {% endif %}
+
+{% endif %}

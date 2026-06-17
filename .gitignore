@@ -15,6 +15,10 @@ _notes/
 # composer related
 vendor/
 
+# node / webpack
+node_modules/
+package-lock.json
+
 # build
 /.phpcq/
 src/Resources/public/js/prepros.config
