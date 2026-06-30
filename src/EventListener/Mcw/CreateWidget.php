@@ -76,7 +76,6 @@ class CreateWidget
         if (Input::get('act') == 'editAll') {
             $fieldName = \preg_replace('/(.*)_[0-9a-zA-Z]+$/', '$1', $fieldName);
         }
-        $dcDriver->field = $fieldName;
 
         // Resolve the field configuration. For nested MCWs the posted name is a bracket path like
         // "base[1][sub]"; the configuration of "sub" then lives in the columnFields of "base", not
@@ -99,6 +98,12 @@ class CreateWidget
             throw new BadRequestHttpException('Bad request');
         }
 
+        // For bracket paths like "base[1][sub]" use only the leaf segment as strField.
+        // Raw brackets propagate into strCommand ("cmd_base[1][sub]") and help-wizard URLs,
+        // where PHP mis-parses them as array subscripts in the query string.
+        $dcField         = self::extractLeafSegment($fieldName);
+        $dcDriver->field = $dcField;
+
         $inputType = $fieldConfig['inputType'];
 
         /** @var string $widgetClassName */
@@ -111,7 +116,7 @@ class CreateWidget
                 $fieldConfig,
                 $dcDriver->inputName,
                 '',
-                $fieldName,
+                $dcField,
                 $dcDriver->table,
                 $dcDriver
             )
@@ -167,6 +172,30 @@ class CreateWidget
 
         // Only return a result when we actually resolved a nested column field.
         return $descended ? $config : null;
+    }
+
+    /**
+     * Return the last non-numeric segment of a (possibly bracketed) field name.
+     *
+     * For plain names ("myField") the name itself is returned. For bracket paths
+     * ("base[1][sub]") the leaf column key ("sub") is returned. This keeps
+     * strField and strCommand free of raw brackets that PHP mis-parses as array
+     * subscripts in URL query strings.
+     *
+     * @param string $fieldName The plain or bracketed field name.
+     *
+     * @return string
+     */
+    private static function extractLeafSegment(string $fieldName): string
+    {
+        $segments = \preg_split('/[\[\]]+/', $fieldName, -1, PREG_SPLIT_NO_EMPTY);
+        foreach (\array_reverse($segments) as $segment) {
+            if (!\is_numeric($segment)) {
+                return $segment;
+            }
+        }
+
+        return $fieldName;
     }
 
     /**
