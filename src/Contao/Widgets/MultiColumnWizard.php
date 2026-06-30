@@ -50,6 +50,7 @@
 
 namespace MenAtWork\MultiColumnWizardBundle\Contao\Widgets;
 
+use Contao\Backend;
 use Contao\BackendTemplate;
 use Contao\Controller;
 use Contao\DataContainer;
@@ -802,21 +803,12 @@ class MultiColumnWizard extends Widget
                 $arrColorpicker[] = $strKey;
             }
 
-            // Store tiny mce fields
+            // Store tiny mce fields. Contao 5 no longer evaluates $GLOBALS['TL_RTE']; the editor is
+            // attached per textarea via the be_tinyMCE template further down (see generate()).
             if (
                 isset($arrField['eval']['rte']) && $arrField['eval']['rte']
                 && strncmp($arrField['eval']['rte'], 'tiny', 4) === 0
             ) {
-                foreach ($this->varValue as $row => $value) {
-                    $tinyId = 'ctrl_' . $this->strField . '_row' . $row . '_' . $strKey;
-
-                    $GLOBALS['TL_RTE']['tinyMCE'][$tinyId] = array(
-                        'id'   => $tinyId,
-                        'file' => 'tinyMCE',
-                        'type' => null
-                    );
-                }
-
                 $arrTinyMCE[] = $strKey;
             }
         }
@@ -990,6 +982,16 @@ class MultiColumnWizard extends Widget
                     $strWidget = str_replace(['reloadPagetree', 'reloadPagetreeDMA'], 'reloadPagetree_mcw', $strWidget);
                 }
 
+                // Contao 5 attaches the rich text editor per textarea via the be_tinyMCE template
+                // (contao--tinymce Stimulus controller) instead of the dropped $GLOBALS['TL_RTE'].
+                // Keep the init script inside the cell so it travels with the row when it is cloned
+                // (copy) and gets re-executed/renumbered there.
+                if (\in_array($strKey, $arrTinyMCE, true)) {
+                    $strWidget .= $this->generateTinyMceEditor(
+                        'ctrl_' . $this->strId . '_row' . $i . '_' . $strKey
+                    );
+                }
+
                 // Build array of items
                 if (!empty($arrField['eval']['columnPos'])) {
                     $arrItems[$i][$objWidget->columnPos]['entry']         =
@@ -1043,6 +1045,40 @@ class MultiColumnWizard extends Widget
         }
 
         return $strOutput;
+    }
+
+    /**
+     * Generate the rich text editor (be_tinyMCE) initialisation for a single column textarea.
+     *
+     * Contao 5 no longer evaluates $GLOBALS['TL_RTE']; instead it attaches the editor configuration
+     * and the "contao--tinymce" Stimulus controller to the textarea via the be_tinyMCE template.
+     *
+     * @param string $selector The html id of the textarea (e.g. "ctrl_<field>_row0_<column>").
+     *
+     * @return string
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
+     */
+    protected function generateTinyMceEditor(string $selector): string
+    {
+        $fileBrowserTypes = [];
+        $pickerBuilder    = System::getContainer()->get('contao.picker.builder');
+        foreach (['file' => 'image', 'link' => 'file'] as $context => $fileBrowserType) {
+            if ($pickerBuilder->supportsContext($context)) {
+                $fileBrowserTypes[] = $fileBrowserType;
+            }
+        }
+
+        $template                   = new BackendTemplate('be_tinyMCE');
+        $template->selector         = $selector;
+        $template->fileBrowserTypes = implode(' ', $fileBrowserTypes);
+        $template->source           = $this->strTable . '.' . $this->currentRecord;
+        $template->readonly         = (bool) ($this->arrConfiguration['readonly'] ?? false);
+        $template->theme            = Backend::getTheme();
+        $template->enableTinyMce    = $GLOBALS['TL_CONFIG']['useRTE'] ?? false;
+        $template->tinyMceLanguage  = Backend::getTinyMceLanguage();
+
+        return $template->parse();
     }
 
     /**

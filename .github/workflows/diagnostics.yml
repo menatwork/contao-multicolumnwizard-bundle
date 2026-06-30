@@ -13,10 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - contao: '~4.13.0'
-            php: '8.2'
-            phpcq_install: 'update'
-            phpcq_flags: '--exit-0'
           - contao:        '~5.3.0'
             php:           '8.2'
             phpcq_install: 'update'
