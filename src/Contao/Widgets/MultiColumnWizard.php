@@ -3,7 +3,7 @@
 /**
  * This file is part of menatwork/contao-multicolumnwizard-bundle.
  *
- * (c) 2012-2025 MEN AT WORK.
+ * (c) 2012-2026 MEN AT WORK.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -43,7 +43,7 @@
  * @author     David Greminger <david.greminger@1up.io>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH
- * @copyright  2013-2025 MEN AT WORK
+ * @copyright  2013-2026 MEN AT WORK
  * @license    https://github.com/menatwork/contao-multicolumnwizard-bundle/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
@@ -159,9 +159,9 @@ class MultiColumnWizard extends Widget
      * @var array
      */
     protected $arrButtons = [
-        'new'    => 'new.gif',
-        'delete' => 'delete.gif',
-        'move'   => 'drag.gif'
+        'new'    => 'new.svg',
+        'delete' => 'delete.svg',
+        'move'   => 'drag.svg'
     ];
     /**
      * @var ContaoApiService
@@ -301,9 +301,9 @@ class MultiColumnWizard extends Widget
                 if ($varValue === false) {
                     unset($this->arrButtons['move']);
                     unset($this->arrButtons['delete']);
-                    $this->arrButtons['up']     = 'up.gif';
-                    $this->arrButtons['down']   = 'down.gif';
-                    $this->arrButtons['delete'] = 'delete.gif';
+                    $this->arrButtons['up']     = 'up.svg';
+                    $this->arrButtons['down']   = 'down.svg';
+                    $this->arrButtons['delete'] = 'delete.svg';
                 }
                 break;
 
@@ -1084,7 +1084,7 @@ class MultiColumnWizard extends Widget
         if (($arrField['inputType'] ?? null) === 'textarea' && empty($arrField['eval']['rte'])) {
             $xlabel .= ' '
                        . Image::getHtml(
-                           'wrap.gif',
+                           'wrap.svg',
                            $GLOBALS['TL_LANG']['MSC']['wordWrap'],
                            'title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['wordWrap'])
                            . '" class="toggleWrap" onclick="Backend.toggleWrap(\'ctrl_'
@@ -1110,7 +1110,7 @@ class MultiColumnWizard extends Widget
                 . StringUtil::specialchars(str_replace("'", "\\'", $label))
                 . '\',\'url\':this.href});return false">'
                 . Image::getHtml(
-                    'about.gif',
+                    'about.svg',
                     $GLOBALS['TL_LANG']['MSC']['helpWizard'],
                     'style="vertical-align:text-bottom"'
                 ) . '</a>';
@@ -1129,7 +1129,7 @@ class MultiColumnWizard extends Widget
                                      . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['fileManager'])
                                      . '" data-lightbox="files 765 80%">'
                                      . Image::getHtml(
-                                         'filemanager.gif',
+                                         'filemanager.svg',
                                          $GLOBALS['TL_LANG']['MSC']['fileManager'],
                                          'style="vertical-align:text-bottom;"'
                                      )
@@ -1147,7 +1147,7 @@ class MultiColumnWizard extends Widget
                        . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_import'][1])
                        . '" onclick="Backend.getScrollOffset();">'
                        . Image::getHtml(
-                           'tablewizard.gif',
+                           'tablewizard.svg',
                            $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
                            'style="vertical-align:text-bottom;"'
                        )
@@ -1155,7 +1155,7 @@ class MultiColumnWizard extends Widget
 
             $xlabel .= ' '
                        . Image::getHtml(
-                           'demagnify.gif',
+                           'demagnify.svg',
                            '',
                            'title="'
                             . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_shrink'])
@@ -1163,7 +1163,7 @@ class MultiColumnWizard extends Widget
                             . ' onclick="Backend.tableWizardResize(0.9);"'
                        )
                        . Image::getHtml(
-                           'magnify.gif',
+                           'magnify.svg',
                            '',
                            'title="'
                            . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_expand'])
@@ -1177,7 +1177,7 @@ class MultiColumnWizard extends Widget
                        . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['lw_import'][1])
                        . '" onclick="Backend.getScrollOffset();">'
                        . Image::getHtml(
-                           'tablewizard.gif',
+                           'tablewizard.svg',
                            $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
                            'style="vertical-align:text-bottom;"'
                        )
@@ -1251,7 +1251,10 @@ class MultiColumnWizard extends Widget
         // Convert date formats into timestamps (check the eval setting first -> #3063)
         $rgxp               = ($arrField['eval']['rgxp'] ?? '');
         $dateFormatErrorMsg = '';
-        if (($rgxp === 'date' || $rgxp === 'time' || $rgxp === 'datim') && $varValue !== '') {
+        if (
+            ($rgxp === 'date' || $rgxp === 'time' || $rgxp === 'datim')
+            && ($varValue !== '' && $varValue !== null)
+        ) {
             try {
                 $objDate = new Date($varValue, $this->getNumericDateFormat($rgxp));
             } catch (\Exception $e) {
@@ -1762,13 +1765,24 @@ SCRIPT;
             }
 
             $btnName = \sprintf('tw_r%s', StringUtil::specialchars($button));
+            // Get a fallback icon if not found in the core.
+            if (
+                '' === ($icon
+                    = Image::getHtml($image, $GLOBALS['TL_LANG']['MSC'][$btnName], 'class="tl_listwizard_img"'))
+            ) {
+                $icon = Image::getHtml(
+                    'bundles/multicolumnwizard/img/' . $image,
+                    $GLOBALS['TL_LANG']['MSC'][$btnName],
+                    'class="tl_listwizard_img"'
+                );
+            }
             $return .=
                 \sprintf(
                     '<a data-operations="%s" href="%s" class="widgetImage op-%s" title="%s">%s</a>',
                     $button,
                     $this->addToUrl(
                         \sprintf(
-                            '&%s=%s&cid=%s&id=',
+                            '&%s=%s&cid=%s&id=%s',
                             $this->strCommand,
                             $button,
                             $level,
@@ -1777,11 +1791,7 @@ SCRIPT;
                     ),
                     $button,
                     $GLOBALS['TL_LANG']['MSC'][$btnName],
-                    Image::getHtml(
-                        $image,
-                        $GLOBALS['TL_LANG']['MSC'][$btnName],
-                        'class="tl_listwizard_img"'
-                    )
+                    $icon
                 );
         }
 
