@@ -196,8 +196,12 @@ class ExecutePostActions extends BaseListener
      */
     public function executePostActions($action, DataContainer $container)
     {
-        // Kick out if the context isn't the right one.
-        if ($action != 'reloadFiletree_mcw' && $action != 'reloadPagetree_mcw') {
+        // Kick out if the context isn't the right one. Nested MCWs run the "reloadFiletree" ->
+        // "reloadFiletree_mcw" rewrite once per wizard level, so the action can carry several "_mcw"
+        // suffixes (e.g. "reloadFiletree_mcw_mcw"). Accept any number of them.
+        $isFileTree = (bool) preg_match('/^reloadFiletree(_mcw)+$/', $action);
+        $isPageTree = (bool) preg_match('/^reloadPagetree(_mcw)+$/', $action);
+        if (!$isFileTree && !$isPageTree) {
             return;
         }
 
@@ -213,11 +217,19 @@ class ExecutePostActions extends BaseListener
 
         $containerField = '';
         if ($vNameCheck) {
-            $fieldParts      = preg_split('/[\[,]|[]\[,]+/', $strField);
+            // The posted name is a bracket path: "base[row][sub]" for a single wizard and
+            // "base[row][sub][row][sub]..." for nested wizards. Descend to the leaf column so the reload
+            // rebuilds the actual field (fileTree/pageTree) instead of the intermediate wizard.
+            $fieldParts      = preg_split('/[\[\]]+/', $strField, -1, PREG_SPLIT_NO_EMPTY);
+            $fieldPartsCount = count($fieldParts);
             $containerField  = $strField;
             $mcwBaseName     = $fieldParts[0];
-            $intRow          = $fieldParts[1];
-            $mcwSupFieldName = $fieldParts[2];
+            $intRow          = $fieldParts[1] ?? 0;
+            $mcwSupFieldName = $fieldParts[2] ?? '';
+            for ($i = 3; ($i + 1) < $fieldPartsCount; $i += 2) {
+                $intRow          = $fieldParts[$i];
+                $mcwSupFieldName = $fieldParts[$i + 1];
+            }
         } else {
             // Get the field name parts.
             $fieldParts = preg_split('/_row[0-9]*_/i', $strField);
@@ -239,7 +251,17 @@ class ExecutePostActions extends BaseListener
             $intId = $idModel->getId();
         }
 
-        $mcwId = $mcwBaseName . '_row' . $intRow . '_' . $mcwSupFieldName;
+        if ($vNameCheck) {
+            // Build the full underscore id the wizard uses in the DOM from the bracket path, e.g.
+            // "base[0][sub][1][leaf]" => "base_row0_sub_row1_leaf". A truncated id would make the
+            // reloaded widget replace the wrong element and break the picker callback.
+            $mcwId = $mcwBaseName;
+            for ($i = 1; ($i + 1) < $fieldPartsCount; $i += 2) {
+                $mcwId .= '_row' . $fieldParts[$i] . '_' . $fieldParts[$i + 1];
+            }
+        } else {
+            $mcwId = $mcwBaseName . '_row' . $intRow . '_' . $mcwSupFieldName;
+        }
 
         // Handle the keys in "edit multiple" mode
         if (Input::get('act') == 'editAll') {
@@ -263,8 +285,28 @@ class ExecutePostActions extends BaseListener
             $widget = MultiColumnWizard::generateSimpleMcw($container->table, $mcwBaseName);
             $fields = $widget->columnFields;
 
-            $GLOBALS['TL_DCA'][$container->table]['fields'][$container->field] = $fields[$mcwSupFieldName];
-            $GLOBALS['TL_DCA'][$container->table]['fields'][$strField]         = $fields[$mcwSupFieldName];
+            // Descend the columnFields to the leaf config. For a single wizard this resolves the sub
+            // field directly; for nested wizards ("base[r][sub][r][leaf]") it walks sub -> leaf.
+            $leafConfig = null;
+            if ($vNameCheck) {
+                $cursor = $fields;
+                for ($i = 2; $i < $fieldPartsCount; $i += 2) {
+                    $key = $fieldParts[$i];
+                    if (!isset($cursor[$key])) {
+                        $leafConfig = null;
+                        break;
+                    }
+                    $leafConfig = $cursor[$key];
+                    $cursor     = $leafConfig['eval']['columnFields'] ?? [];
+                }
+            } else {
+                $leafConfig = $fields[$mcwSupFieldName] ?? null;
+            }
+
+            if (null !== $leafConfig) {
+                $GLOBALS['TL_DCA'][$container->table]['fields'][$container->field] = $leafConfig;
+                $GLOBALS['TL_DCA'][$container->table]['fields'][$strField]         = $leafConfig;
+            }
         }
 
         // The field does not exist
@@ -336,7 +378,7 @@ class ExecutePostActions extends BaseListener
 
         // Set the new value
         $varValue = Input::post('value', true);
-        $strKey   = (($action == 'reloadPagetree_mcw') ? 'pageTree' : 'fileTree');
+        $strKey   = ($isPageTree ? 'pageTree' : 'fileTree');
 
         // Convert the selected values
         if ($varValue != '') {
