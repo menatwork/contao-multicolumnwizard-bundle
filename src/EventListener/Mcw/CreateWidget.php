@@ -122,11 +122,44 @@ class CreateWidget
             )
         );
 
+        // Override the html id with the underscore form the wizard uses everywhere else. getAttributesFromDca
+        // sets the id to the (bracketed) input name, but for nested MCWs that name is a bracket path like
+        // "base[1][sub]". MultiColumnWizard::initializeWidget() derives child ids as "<strId>_row<n>_<key>",
+        // so keeping the brackets produces ids like "base[1][sub]_row1_leaf" that are invalid CSS selectors
+        // and break e.g. tinyMCE's querySelectorAll. In the regular render path initializeWidget() sets this
+        // underscore id explicitly; the ajax row creation path has to do the same.
+        $widget->id = self::bracketPathToMcwId($dcDriver->inputName);
+
         // Set some more information.
         $widget->currentRecord = $dcDriver->id;
         $widget->activeRecord  = $dcDriver->activeRecord;
 
         $event->setWidget($widget);
+    }
+
+    /**
+     * Convert a (possibly nested) bracket field path into the underscore id form used by the wizard.
+     *
+     * "base"                  => "base"                   (plain field, unchanged)
+     * "base[1][sub]"          => "base_row1_sub"
+     * "base[1][sub][2][leaf]" => "base_row1_sub_row2_leaf"
+     *
+     * Numeric segments are row indices and become "_row<n>_", the column keys are kept as-is. This mirrors
+     * the ids produced by MultiColumnWizard::initializeWidget() for the same nested field.
+     *
+     * @param string $fieldName The plain or bracketed field name.
+     *
+     * @return string
+     */
+    private static function bracketPathToMcwId(string $fieldName): string
+    {
+        return \preg_replace_callback(
+            '/\[(\d+)\]\[([^\]]+)\]/',
+            static function (array $matches): string {
+                return '_row' . $matches[1] . '_' . $matches[2];
+            },
+            $fieldName
+        );
     }
 
     /**

@@ -356,6 +356,18 @@ class MultiColumnWizard extends Widget
                 }
                 break;
 
+            // The mcw acts as the data container for its sub widgets (see buildWidget()). Third party
+            // widgets may read the table and record id from that data container (e.g. contao-file-usage
+            // builds a "replace references" URL from them). Expose the parent data container context so
+            // these lookups resolve instead of returning the widget's own (html) id and an empty table.
+            // Works for nested wizards as well: the inner mcw's data container is the outer mcw, whose
+            // id in turn resolves up to the real data container.
+            case 'table':
+                return $this->strTable;
+
+            case 'id':
+                return $this->objDca?->id ?? parent::__get($strKey);
+
             default:
                 return parent::__get($strKey);
         }
