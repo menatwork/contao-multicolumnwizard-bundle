@@ -356,6 +356,14 @@ class MultiColumnWizard extends Widget
                 }
                 break;
 
+            // The mcw acts as the data container for its sub widgets (see buildWidget()). Third party
+            // widgets may read the table from that data container (e.g. contao-file-usage builds a
+            // "replace references" URL from it, which fails on an empty table). Expose the parent table
+            // so these lookups resolve. The id is intentionally NOT overridden: it is also read
+            // internally (e.g. buildWidgetForDcGeneral) and must stay the widget id, not the record id.
+            case 'table':
+                return $this->strTable;
+
             default:
                 return parent::__get($strKey);
         }

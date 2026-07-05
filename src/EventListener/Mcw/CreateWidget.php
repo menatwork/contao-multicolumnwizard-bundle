@@ -76,10 +76,15 @@ class CreateWidget
         if (Input::get('act') == 'editAll') {
             $fieldName = \preg_replace('/(.*)_[0-9a-zA-Z]+$/', '$1', $fieldName);
         }
-        $dcDriver->field = $fieldName;
+
+        // Resolve the field configuration. For nested MCWs the posted name is a bracket path like
+        // "base[1][sub]"; the configuration of "sub" then lives in the columnFields of "base", not
+        // as a top level DCA field.
+        $fieldConfig = $GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName]
+            ?? self::resolveNestedFieldConfig($fieldName, $dcDriver->table);
 
         // The field does not exist
-        if (!isset($GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName])) {
+        if (null === $fieldConfig) {
             $this->logger->log(
                 LogLevel::ERROR,
                 'Field "' . $fieldName . '" does not exist in DCA "' . $dcDriver->table . '"',
@@ -93,7 +98,13 @@ class CreateWidget
             throw new BadRequestHttpException('Bad request');
         }
 
-        $inputType = $GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName]['inputType'];
+        // For bracket paths like "base[1][sub]" use only the leaf segment as strField.
+        // Raw brackets propagate into strCommand ("cmd_base[1][sub]") and help-wizard URLs,
+        // where PHP mis-parses them as array subscripts in the query string.
+        $dcField         = self::extractLeafSegment($fieldName);
+        $dcDriver->field = $dcField;
+
+        $inputType = $fieldConfig['inputType'];
 
         /** @var string $widgetClassName */
         $widgetClassName = $GLOBALS['BE_FFL'][$inputType];
@@ -102,20 +113,122 @@ class CreateWidget
         /** @var MultiColumnWizard $widgetClassName */
         $widget = new $widgetClassName(
             $widgetClassName::getAttributesFromDca(
-                $GLOBALS['TL_DCA'][$dcDriver->table]['fields'][$fieldName],
+                $fieldConfig,
                 $dcDriver->inputName,
                 '',
-                $fieldName,
+                $dcField,
                 $dcDriver->table,
                 $dcDriver
             )
         );
+
+        // Override the html id with the underscore form the wizard uses everywhere else. getAttributesFromDca
+        // sets the id to the (bracketed) input name, but for nested MCWs that name is a bracket path like
+        // "base[1][sub]". MultiColumnWizard::initializeWidget() derives child ids as "<strId>_row<n>_<key>",
+        // so keeping the brackets produces ids like "base[1][sub]_row1_leaf" that are invalid CSS selectors
+        // and break e.g. tinyMCE's querySelectorAll. In the regular render path initializeWidget() sets this
+        // underscore id explicitly; the ajax row creation path has to do the same.
+        $widget->id = self::bracketPathToMcwId($dcDriver->inputName);
 
         // Set some more information.
         $widget->currentRecord = $dcDriver->id;
         $widget->activeRecord  = $dcDriver->activeRecord;
 
         $event->setWidget($widget);
+    }
+
+    /**
+     * Convert a (possibly nested) bracket field path into the underscore id form used by the wizard.
+     *
+     * "base"                  => "base"                   (plain field, unchanged)
+     * "base[1][sub]"          => "base_row1_sub"
+     * "base[1][sub][2][leaf]" => "base_row1_sub_row2_leaf"
+     *
+     * Numeric segments are row indices and become "_row<n>_", the column keys are kept as-is. This mirrors
+     * the ids produced by MultiColumnWizard::initializeWidget() for the same nested field.
+     *
+     * @param string $fieldName The plain or bracketed field name.
+     *
+     * @return string
+     */
+    private static function bracketPathToMcwId(string $fieldName): string
+    {
+        return \preg_replace_callback(
+            '/\[(\d+)\]\[([^\]]+)\]/',
+            static function (array $matches): string {
+                return '_row' . $matches[1] . '_' . $matches[2];
+            },
+            $fieldName
+        );
+    }
+
+    /**
+     * Resolve the configuration of a (nested) MCW field from its posted name.
+     *
+     * For nested MCWs the posted field name is a bracket path like "base[1][sub]". The
+     * configuration of "sub" lives in the columnFields of "base" (recursively); numeric segments
+     * are row indices and carry no configuration. Returns null when the name is a plain top level
+     * field (handled by the caller) or cannot be resolved.
+     *
+     * @param string $fieldName The posted (possibly bracketed) field name.
+     * @param string $table     The table name.
+     *
+     * @return array|null The resolved field configuration or null.
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
+     */
+    private static function resolveNestedFieldConfig(string $fieldName, string $table): ?array
+    {
+        $segments = \preg_split('/[\[\]]+/', $fieldName, -1, PREG_SPLIT_NO_EMPTY);
+        if (empty($segments)) {
+            return null;
+        }
+
+        $baseField = \array_shift($segments);
+        if (!isset($GLOBALS['TL_DCA'][$table]['fields'][$baseField])) {
+            return null;
+        }
+
+        $config    = $GLOBALS['TL_DCA'][$table]['fields'][$baseField];
+        $descended = false;
+        foreach ($segments as $segment) {
+            // Row indices are numeric and carry no configuration.
+            if (\is_numeric($segment)) {
+                continue;
+            }
+            if (!isset($config['eval']['columnFields'][$segment])) {
+                return null;
+            }
+            $config    = $config['eval']['columnFields'][$segment];
+            $descended = true;
+        }
+
+        // Only return a result when we actually resolved a nested column field.
+        return $descended ? $config : null;
+    }
+
+    /**
+     * Return the last non-numeric segment of a (possibly bracketed) field name.
+     *
+     * For plain names ("myField") the name itself is returned. For bracket paths
+     * ("base[1][sub]") the leaf column key ("sub") is returned. This keeps
+     * strField and strCommand free of raw brackets that PHP mis-parses as array
+     * subscripts in URL query strings.
+     *
+     * @param string $fieldName The plain or bracketed field name.
+     *
+     * @return string
+     */
+    private static function extractLeafSegment(string $fieldName): string
+    {
+        $segments = \preg_split('/[\[\]]+/', $fieldName, -1, PREG_SPLIT_NO_EMPTY);
+        foreach (\array_reverse($segments) as $segment) {
+            if (!\is_numeric($segment)) {
+                return $segment;
+            }
+        }
+
+        return $fieldName;
     }
 
     /**

@@ -165,6 +165,16 @@ var MultiColumnWizard = new Class(
             var innerMCWCols = 0;
             var innerMCWColCount = 0;
 
+            // The row index that belongs to THIS wizard is the one right after the wizard's own id
+            // ("<wizardId>_row<n>_..."). Anchoring the rewrite on that id keeps the indices of parent and
+            // child wizards intact. A blind "last _row<n>_" replace corrupts nested ids: when an outer row
+            // is moved, all of its inner rows collapse onto the same id, so only the first inner editor
+            // survives and one gets duplicated.
+            var mcwStrId   = (this.options.table && this.options.table.get('id') || '').replace(/^ctrl_/, '');
+            var mcwAnchor  = mcwStrId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '_row';
+            var reRowFirst = new RegExp('(' + mcwAnchor + ')[0-9]+_');
+            var reRowAll   = new RegExp('(' + mcwAnchor + ')[0-9]+_', 'g');
+
             row.getElements('.mcwUpdateFields *').each(function(el)
             {
 
@@ -250,31 +260,23 @@ var MultiColumnWizard = new Class(
                 // rewrite elements id or delete input fields without an id
                 if (typeOf(el.getProperty('id')) == 'string')
                 {
-                    var erg = el.getProperty('id').match(/^(.+)_row[0-9]+_(.+)$/i);
-                    if (erg)
-                    {
-                        el.setProperty('id', erg[1] + '_row' + level + '_' + erg[2]);
-                    }
+                    // Rewrite only the row index of THIS wizard (see reRowFirst above), leaving the
+                    // indices of nested parent/child wizards untouched.
+                    el.setProperty('id', el.getProperty('id').replace(reRowFirst, '$1' + level + '_'));
                 }
 
-                // rewrite elements onclick (e.g. pagePicker)
+                // rewrite elements onclick (e.g. checkbox group toggle, pagePicker). Anchored on the
+                // wizard id and global (reRowAll), since an onclick can reference more than one id.
                 if (typeOf(el.getProperty('onclick')) == 'string')
                 {
-                    var erg = el.getProperty('onclick').match(/^(.+)_row[0-9]+_(.+)$/i);
-                    if (erg)
-                    {
-                        el.setProperty('onclick', erg[1] + '_row' + level + '_' + erg[2]);
-                    }
+                    el.setProperty('onclick', el.getProperty('onclick').replace(reRowAll, '$1' + level + '_'));
                 }
 
-                //rewrite elements for attribute
+                // rewrite elements for attribute (option labels, "select all"). Anchored like the id
+                // above so nested parent/child indices stay intact.
                 if (typeOf(el.getProperty('for')) == 'string')
                 {
-                    var erg = el.getProperty('for').match(/^(.+)_row[0-9]+_(.+)$/i);
-                    if (erg)
-                    {
-                        el.setProperty('for', erg[1] + '_row' + level + '_' + erg[2]);
-                    }
+                    el.setProperty('for', el.getProperty('for').replace(reRowAll, '$1' + level + '_'));
                 }
                 // set attributes depending of the tag type
                 switch (el.nodeName.toUpperCase())
@@ -291,21 +293,10 @@ var MultiColumnWizard = new Class(
                         if (typeOf(el.getProperty('id')) != 'string') el.destroy();
                         break;
                     case 'SCRIPT':
-                        //rewrite inline
-                        //ToDO: refactor this part. For some reason replace will only find the first token of _row[0-9]+_
-                        var newScript = '';
-                        var script = el.get('html').toString();
-                        var length = 0;
-                        var start = script.search(/_row[0-9]+_/i);
-                        while(start > 0)
-                        {
-                            length = script.match(/(_row[0-9]+)+_/i)[0].length;
-                            newScript =  newScript + script.substr(0, start) + '_row' + level + '_';
-                            script = script.substr(start + length);
-                            start = script.search(/_row[0-9]+_/i);
-                        }
-
-                        el.set('html', newScript+script);
+                        // Rewrite this wizard's row index inside inline scripts (e.g. the tinyMCE init
+                        // "selector" and "source"). Anchored on the wizard id (reRowAll) so it stays in
+                        // sync with the element ids above and never touches the indices of nested wizards.
+                        el.set('html', el.get('html').toString().replace(reRowAll, '$1' + level + '_'));
                         break;
                 }
 
@@ -320,17 +311,29 @@ var MultiColumnWizard = new Class(
          * @param element move button
          */
         dragAndDrop: function(tr, link) {
+            var self = this;
             new Sortables(tr.getParent('table').getElement('tbody'), {
                 constrain: true,
                 opacity: 0.6,
-                handle: 'a[data-operations=move]',
-                onComplete: function() {
-                    tr.getParent('table').getElement('tbody').getChildren('tr').each(function(el, i) {
+                // Only use the row's OWN move handle. Without the "> td.operations" scope Sortables'
+                // element.getElement(handle) returns the FIRST descendant move handle, which for a row
+                // containing a nested wizard is an inner row's handle - so the outer wizard could not be
+                // dragged at all (the outer move handle was never bound).
+                handle: '> td.operations a[data-operations=move]',
+                // Flush and remove the RTE editors of the affected wizard before the row is moved in the
+                // DOM. Re-parenting an editor iframe reloads it and drops its content, so we sync the
+                // content back into the textarea first and reinitialise the editors once the new order is
+                // applied.
+                onStart: function(el) {
+                    self.killAllTinyMCE(link, el);
+                },
+                onComplete: function(el) {
+                    tr.getParent('table').getElement('tbody').getChildren('tr').each(function(row, i) {
                         //Must be substract down 1 because the loop iterator begins with 1
                         var level = i--;
-                        this.updateRowAttributes(level, el);
+                        this.updateRowAttributes(level, row);
                     }, this);
-
+                    self.reinitTinyMCE(link, el, false);
                 }.bind(this)
             });
         },
@@ -384,87 +387,54 @@ var MultiColumnWizard = new Class(
         {
             var parent = row.getParent('.multicolumnwizard');
 
-            // skip if no tinymce class was found
-            if(parent.getElements('.tinymce').length == 0)
+            // skip if tinymce is not available or the wizard has no rte field
+            if(typeof tinymce === 'undefined' || !parent || parent.getElements('.tinymce').length == 0)
             {
                 return;
             }
 
-            var mcwName = parent.get('id');
-            var myRegex = new RegExp(mcwName);
-            var tinyMCEEditors = new Array();
-            var counter = 0;
-
-            var editorId = 'editorId';
-            if (tinymce.majorVersion > 3) {
-                editorId = 'id';
-            }
-
-            // get a list with tinymces
-            tinymce.editors.each(function(item, index){
-                if(item[editorId].match(myRegex) != null)
+            // TinyMCE 6 no longer exposes tinymce.editors; tinymce.get() (without argument) returns the
+            // list of all editors. Iterate a copy, because editor.remove() mutates that list. save()
+            // writes the current content back into the underlying textarea so it survives the DOM move;
+            // remove() then destroys the editor but keeps the textarea (with its value) in place. The
+            // init <script> tags are intentionally left in the DOM - reinitTinyMCE() re-runs them.
+            var myRegex = new RegExp(parent.get('id'));
+            (tinymce.get() || []).slice().each(function(editor){
+                if (editor && editor.id && editor.id.match(myRegex) != null)
                 {
-                    tinyMCEEditors[counter] = item[editorId];
-                    counter++;
+                    try {
+                        editor.save();
+                        editor.remove();
+                    } catch (e) {
+                        console.log(e);
+                    }
                 }
-            });
-
-            // clear tinymces
-            tinyMCEEditors.each(function(item, index){
-                try {
-                    var editor = tinymce.get(item);
-                    $(editor[editorId]).set('text', editor.getContent());
-                    editor.remove();
-                } catch (e) {
-                    console.log(e)
-                }
-            });
-
-            // search for dmg tinymces
-            parent.getElements('span.mceEditor').each(function(item, index){
-                item.dispose();
-            });
-
-            // search for scripttags tinymces
-            parent.getElements('.tinymce').each(function(item, index){
-                item.getElements('script').each(function(item, index){
-                    item.dispose();
-                });
             });
         },
 
         reinitTinyMCE: function(el, row, isParent)
         {
-            var parent = null;
+            var parent = (isParent === true) ? row : row.getParent('.multicolumnwizard');
 
-            if(isParent != true)
-            {
-                parent = row.getParent('.multicolumnwizard');
-            }
-            else
-            {
-                parent = row;
-            }
-
-            // skip if no tinymce class was found
-            if(parent.getElements('.tinymce').length == 0)
+            // skip if tinymce is not available or the wizard has no rte field
+            if(typeof tinymce === 'undefined' || !parent || parent.getElements('.tinymce').length == 0)
             {
                 return;
             }
 
-            var varTinys = parent.getElements('.tinymce textarea');
-
-            var addEditorCommand = 'mceAddControl';
-            if (tinymce.majorVersion > 3) {
-                addEditorCommand = 'mceAddEditor';
-            }
-
-            varTinys.each(function(item, index){
-
-                tinymce.execCommand(addEditorCommand, false, item.get('id'));
-                tinymce.get(item.get('id')).show();
-                $(item.get('id')).erase('required');
-                $(tinymce.get(item.get('id')).editorContainer).getElements('iframe')[0].set('title','MultiColumnWizard - TinyMCE');
+            // TinyMCE 6 has no usable "add editor by id" command (mceAddEditor needs the full options).
+            // Re-run each RTE init script instead: updateRowAttributes() has already rewritten the element
+            // id inside it, so executing it recreates the editor with its full configuration and the
+            // content that killAllTinyMCE() saved into the textarea. The wizard's own init script (which
+            // creates a MultiColumnWizard instance) is skipped via the tinymce.init marker, and the
+            // tinymce loader line (window.tinymce || document.write(...)) short-circuits because tinymce
+            // is already loaded.
+            parent.getElements('script').each(function(script){
+                var code = script.get('html');
+                if (code && code.indexOf('tinymce.init') !== -1)
+                {
+                    Browser.exec(code);
+                }
             });
         },
 
@@ -578,6 +548,15 @@ Object.append(MultiColumnWizard,
                    newRow.inject(row, 'after');
                    // Execute the JS from widgets.
                    json.javascript && Browser.exec(json.javascript);
+                   // Execute the inline scripts contained in the new row itself (e.g. tinyMCE/RTE
+                   // init, pickers, nested wizard init). The request runs with evalScripts:false,
+                   // so the scripts embedded in json.content are not executed automatically. Without
+                   // this the RTE of a freshly added row (also inside nested wizards) stays
+                   // uninitialised until the whole mask is saved and rebuilt. Scoped to newRow, so
+                   // editors of existing rows are not touched (no double init).
+                   newRow.getElements('script').each(function (script) {
+                       Browser.exec(script.get('html'));
+                   });
                    // Rebind the events.
                    newRow.getElements('td.operations a').each(function (operation) {
                        var key = operation.get('data-operations');
