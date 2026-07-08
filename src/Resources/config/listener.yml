@@ -27,10 +27,6 @@ services:
         method: executeEvent
 
   MenAtWork\MultiColumnWizardBundle\EventListener\Mcw\ColorPicker:
-    arguments:
-      - '@=service(''contao.framework'').getAdapter(''Contao\\Image'')'
-      - '@=service(''contao.framework'').getAdapter(''Contao\\StringUtil'')'
-      - "@translator"
     tags:
       - name: kernel.event_listener
         event: men-at-work.multi-column-wizard-bundle.get-color-picker

@@ -3,8 +3,8 @@
  *
  * @copyright   Andreas Schempp 2011
  * @copyright   certo web & design GmbH 2011
- * @copyright   MEN AT WORK 2013
- * @author      Ingolf Steinhardt <info@e-spin.de> 2020
+ * @copyright   MEN AT WORK 2013-2026
+ * @author      Ingolf Steinhardt <info@e-spin.de> 2020-2026
  * @package     MultiColumnWizard
  * @license     GNU/LGPL
  * @info        tab is set to 4 whitespaces
@@ -149,6 +149,29 @@ var MultiColumnWizard = new Class(
 
                 });
             });
+
+            // Keep "chosen" selects (Choices.js) at the width the field defines (see below).
+            self.syncChoicesWidth();
+        },
+
+        /**
+         * Propagate a chosen select's own width to its Choices.js wrapper (Contao 5).
+         *
+         * A field's width (eval.style => 'width:...') is rendered as an inline style on the <select>.
+         * Choices.js hides that select and shows a generated .choices wrapper that does not inherit
+         * the inline style, so the configured width would be lost. Copy the width onto the surrounding
+         * .tl_select_wrapper (the .choices element fills it), so existing DCAs keep working unchanged.
+         */
+        syncChoicesWidth: function()
+        {
+            this.options.table.getElements('.tl_select_wrapper').each(function(wrapper)
+            {
+                var select = wrapper.getElement('select');
+                if (select && select.style && select.style.width)
+                {
+                    wrapper.setStyle('width', select.style.width);
+                }
+            });
         },
 
         /**
@@ -200,12 +223,6 @@ var MultiColumnWizard = new Class(
                     if (intInnerMCW === 0) {
                         firstLevel = true;
                     }
-                }
-
-                //remove choosen elements
-                if (el.hasClass('chzn-container')){
-                    el.destroy();
-                    return;
                 }
 
                 // rewrite elements name
@@ -281,11 +298,6 @@ var MultiColumnWizard = new Class(
                 // set attributes depending of the tag type
                 switch (el.nodeName.toUpperCase())
                 {
-
-                    case 'SELECT':
-                        //create new chosen (2.11 only)
-                        if (el.hasClass('tl_chosen')) new Chosen(el);
-                        break;
                     case 'INPUT':
                         //set input field to visible
                         if (el.getStyle('display').toLowerCase() == 'none') el.setStyle('display','inline');
@@ -315,17 +327,20 @@ var MultiColumnWizard = new Class(
             new Sortables(tr.getParent('table').getElement('tbody'), {
                 constrain: true,
                 opacity: 0.6,
-                // Only use the row's OWN move handle. Without the "> td.operations" scope Sortables'
+                // Only use the row's OWN move handle. Scope it to the row's own operations container
+                // (direct child with class col_last - the operations <td> in table layout and the
+                // buttons <div> in tableless layout). Without the child combinator Sortables'
                 // element.getElement(handle) returns the FIRST descendant move handle, which for a row
                 // containing a nested wizard is an inner row's handle - so the outer wizard could not be
                 // dragged at all (the outer move handle was never bound).
-                handle: '> td.operations a[data-operations=move]',
+                handle: '> .col_last a[data-operations=move]',
                 // Flush and remove the RTE editors of the affected wizard before the row is moved in the
                 // DOM. Re-parenting an editor iframe reloads it and drops its content, so we sync the
                 // content back into the textarea first and reinitialise the editors once the new order is
                 // applied.
                 onStart: function(el) {
                     self.killAllTinyMCE(link, el);
+                    self.killAllColorPicker(link, el);
                 },
                 onComplete: function(el) {
                     tr.getParent('table').getElement('tbody').getChildren('tr').each(function(row, i) {
@@ -334,6 +349,7 @@ var MultiColumnWizard = new Class(
                         this.updateRowAttributes(level, row);
                     }, this);
                     self.reinitTinyMCE(link, el, false);
+                    self.reinitColorPicker(link, el, false);
                 }.bind(this)
             });
         },
@@ -387,28 +403,28 @@ var MultiColumnWizard = new Class(
         {
             var parent = row.getParent('.multicolumnwizard');
 
-            // skip if tinymce is not available or the wizard has no rte field
-            if(typeof tinymce === 'undefined' || !parent || parent.getElements('.tinymce').length == 0)
+            // skip if tinymce is unavailable or the wizard has no rte column. The rte column is
+            // rendered with the "tinymce" wrapper class (eval.tl_class), so the textarea is found
+            // via ".tinymce textarea".
+            if (typeof tinymce === 'undefined' || !parent || parent.getElements('.tinymce textarea').length === 0)
             {
                 return;
             }
 
-            // TinyMCE 6 no longer exposes tinymce.editors; tinymce.get() (without argument) returns the
-            // list of all editors. Iterate a copy, because editor.remove() mutates that list. save()
-            // writes the current content back into the underlying textarea so it survives the DOM move;
-            // remove() then destroys the editor but keeps the textarea (with its value) in place. The
-            // init <script> tags are intentionally left in the DOM - reinitTinyMCE() re-runs them.
-            var myRegex = new RegExp(parent.get('id'));
-            (tinymce.get() || []).slice().each(function(editor){
-                if (editor && editor.id && editor.id.match(myRegex) != null)
+            // Contao 5 initialises the editor per textarea via the be_tinyMCE template and the
+            // contao--tinymce Stimulus controller (the legacy $GLOBALS['TL_RTE'] mechanism is gone).
+            // Remove every editor and detach the controller so the editors can be re-created cleanly
+            // after the rows have been renumbered, moved or cloned. The content is written back to
+            // the textarea first.
+            parent.getElements('.tinymce textarea').each(function(textarea){
+                var editor = tinymce.get(textarea.get('id'));
+                if (editor)
                 {
-                    try {
-                        editor.save();
-                        editor.remove();
-                    } catch (e) {
-                        console.log(e);
-                    }
+                    textarea.set('value', editor.getContent());
+                    editor.remove();
                 }
+
+                MultiColumnWizard.detachController(textarea, 'contao--tinymce');
             });
         },
 
@@ -416,40 +432,103 @@ var MultiColumnWizard = new Class(
         {
             var parent = (isParent === true) ? row : row.getParent('.multicolumnwizard');
 
-            // skip if tinymce is not available or the wizard has no rte field
-            if(typeof tinymce === 'undefined' || !parent || parent.getElements('.tinymce').length == 0)
+            // skip if tinymce is unavailable or the wizard has no rte column
+            if (typeof tinymce === 'undefined' || !parent || parent.getElements('.tinymce textarea').length === 0)
             {
                 return;
             }
 
-            // TinyMCE 6 has no usable "add editor by id" command (mceAddEditor needs the full options).
-            // Re-run each RTE init script instead: updateRowAttributes() has already rewritten the element
-            // id inside it, so executing it recreates the editor with its full configuration and the
-            // content that killAllTinyMCE() saved into the textarea. The wizard's own init script (which
-            // creates a MultiColumnWizard instance) is skipped via the tinymce.init marker, and the
-            // tinymce loader line (window.tinymce || document.write(...)) short-circuits because tinymce
-            // is already loaded.
-            parent.getElements('script').each(function(script){
-                var code = script.get('html');
-                if (code && code.indexOf('tinymce.init') !== -1)
+            // Cloned rows already carry the contao--tinymce controller (re-added by the re-executed
+            // be_tinyMCE script) and are (re)connected by Stimulus. Moved rows (up/down) lost their
+            // controller in killAllTinyMCE, so initialise them directly from the configuration that
+            // the be_tinyMCE template attached to the textarea.
+            //
+            // Defer to a macrotask: removing the "contao--tinymce" controller in killAllTinyMCE
+            // schedules an asynchronous Stimulus disconnect (a MutationObserver microtask) that calls
+            // editor.remove() for the previous editor id. up/down run synchronously in a single
+            // handler, so a synchronous re-init would create editors that this pending disconnect then
+            // tears down again (row indices - and therefore editor ids - are reused after renumbering).
+            // A setTimeout(0) runs after those microtasks, so the re-created editors survive. Drag &
+            // drop already spans two ticks (onStart/onComplete) and is unaffected.
+            setTimeout(function(){
+                if (typeof tinymce === 'undefined')
                 {
-                    Browser.exec(code);
+                    return;
                 }
+                parent.getElements('.tinymce textarea').each(function(textarea){
+                    if (!textarea.tinymceConfig)
+                    {
+                        return; // no rte config attached
+                    }
+                    if (tinymce.get(textarea.get('id')))
+                    {
+                        return; // editor already present
+                    }
+                    if (MultiColumnWizard.hasController(textarea, 'contao--tinymce'))
+                    {
+                        return; // Stimulus will (re)connect this one
+                    }
+
+                    // Re-attach the contao--tinymce controller (rather than a bare tinymce.init) so the
+                    // re-created editor stays MANAGED by Stimulus. An unmanaged editor is not torn down
+                    // on a Turbo navigation, so after saving a reordered wizard its old instance lingers
+                    // in tinymce's registry and blocks the freshly rendered editor until a full reload.
+                    // The tinymceConfig/data-action the be_tinyMCE template attached are still present.
+                    MultiColumnWizard.attachController(textarea, 'contao--tinymce');
+                });
+            }, 0);
+        },
+
+        killAllColorPicker: function(el, row)
+        {
+            var parent = row.getParent('.multicolumnwizard');
+            if (!parent)
+            {
+                return;
+            }
+
+            // Detach the contao--color-picker controller so Stimulus disconnects it (the Pickr instance
+            // is destroyed) before the row is moved in the DOM. Pickr replaces its button target on
+            // init, so a plain reconnect after the move fails with "Missing target element button";
+            // reinitColorPicker() rebuilds the target and re-attaches the controller.
+            parent.getElements('[data-controller~="contao--color-picker"]').each(function(wrapper)
+            {
+                MultiColumnWizard.detachController(wrapper, 'contao--color-picker');
             });
         },
 
-        reinitStylect: function()
+        reinitColorPicker: function(el, row, isParent)
         {
-
-            if(window.Stylect)
+            var parent = (isParent === true) ? row : row.getParent('.multicolumnwizard');
+            if (!parent)
             {
-                if (versionCompare('3.2.3') >= 0) {
-                    $$('.styled_select').each(function(item, index){
-                        item.dispose();
-                    });
-                    Stylect.convertSelects();
-                }
+                return;
             }
+
+            // Deferred (macrotask) so the Stimulus disconnects from killAllColorPicker() - which destroy
+            // the Pickr instances - have run first. Rebuild a fresh button target (Pickr consumed the
+            // previous one) and re-attach the controller so Stimulus re-creates the picker.
+            setTimeout(function()
+            {
+                parent.getElements('input[data-contao--color-picker-target="input"]').each(function(input)
+                {
+                    var wrapper = input.getParent();
+                    if (!wrapper)
+                    {
+                        return;
+                    }
+
+                    // Drop any leftover Pickr markup and make sure a button target exists.
+                    wrapper.getElements('.pickr').each(function(node){ node.destroy(); });
+                    if (!wrapper.getElement('[data-contao--color-picker-target="button"]'))
+                    {
+                        new Element('div', { 'data-contao--color-picker-target': 'button' }).inject(wrapper);
+                    }
+
+                    wrapper.set('data-contao--color-picker-theme-value', 'monolith');
+                    MultiColumnWizard.attachController(wrapper, 'contao--color-picker');
+                });
+            }, 0);
         }
     });
 
@@ -577,10 +656,6 @@ Object.append(MultiColumnWizard,
                            });
                        }
                    });
-                   // Add init chosen if tl_chosen defined in select for the new row.
-                   if (Elements.chosen !== undefined) {
-                       newRow.getElements('select.tl_chosen').chosen();
-                   }
                    self.updateOperations();
                    self.asyncBlock = false;
                 },
@@ -631,6 +706,9 @@ Object.append(MultiColumnWizard,
             {
                 var copy = row.clone(true,true);
 
+                // reset cloned Choices.js widgets so they re-initialise cleanly (Contao 5)
+                MultiColumnWizard.resetClonedChoices(copy);
+
                 // clear all elements
                 copy.getElements('input,select,textarea').each(function(el){
                     MultiColumnWizard.clearElementValue(el);
@@ -669,7 +747,6 @@ Object.append(MultiColumnWizard,
             }
 
             this.reinitTinyMCE(el, row, false);
-            this.reinitStylect();
         },
 
         /**
@@ -706,6 +783,9 @@ Object.append(MultiColumnWizard,
             {
                 var copy = row.clone(true,true);
 
+                // reset cloned Choices.js widgets so they re-initialise cleanly (Contao 5)
+                MultiColumnWizard.resetClonedChoices(copy);
+
                 // get the current level of the row
                 level = row.getAllPrevious().length;
 
@@ -739,7 +819,6 @@ Object.append(MultiColumnWizard,
             }
 
             this.reinitTinyMCE(el, row, false);
-            this.reinitStylect();
         },
 
         /**
@@ -772,6 +851,17 @@ Object.append(MultiColumnWizard,
             var parent = row.getParent('.multicolumnwizard');
 
             if (row.getSiblings().length > 0) {
+                // Remove the TinyMCE editors of this row before destroying it, otherwise the editor
+                // instances (Contao 5 / contao--tinymce) would be orphaned.
+                if (typeof tinymce !== 'undefined') {
+                    row.getElements('.tinymce textarea').each(function(textarea){
+                        var editor = tinymce.get(textarea.get('id'));
+                        if (editor) {
+                            editor.remove();
+                        }
+                    });
+                }
+
                 //get all following rows
                 var rows = row.getAllNext();
                 //extract the current level
@@ -791,6 +881,7 @@ Object.append(MultiColumnWizard,
         upClick: function(el, row)
         {
             this.killAllTinyMCE(el, row);
+            this.killAllColorPicker(el, row);
 
             var previous = row.getPrevious();
             if (previous)
@@ -810,6 +901,7 @@ Object.append(MultiColumnWizard,
             }
 
             this.reinitTinyMCE(el, row, false);
+            this.reinitColorPicker(el, row, false);
         },
 
         /**
@@ -820,6 +912,7 @@ Object.append(MultiColumnWizard,
         downClick: function(el, row)
         {
             this.killAllTinyMCE(el, row);
+            this.killAllColorPicker(el, row);
 
             var next = row.getNext();
             if (next)
@@ -839,6 +932,7 @@ Object.append(MultiColumnWizard,
             }
 
             this.reinitTinyMCE(el, row, false);
+            this.reinitColorPicker(el, row, false);
         },
 
         /**
@@ -853,6 +947,88 @@ Object.append(MultiColumnWizard,
             else
             {
                 el.set('value', '');
+            }
+        },
+
+        /**
+         * Reset the Choices.js widgets inside a freshly cloned row (Contao 5).
+         *
+         * A "chosen" select is enhanced by the contao--choices Stimulus controller, which wraps it in
+         * a generated <div class="choices"> structure. Cloning a row copies that rendered markup, so
+         * re-connecting the controller would run new Choices() on an already wrapped select and nest a
+         * second widget. Move the underlying <select> back out and drop the stale wrapper; the
+         * controller then re-initialises Choices cleanly once the clone is inserted into the DOM.
+         *
+         * @param Element row The cloned row (not yet in the document).
+         */
+        resetClonedChoices: function(row)
+        {
+            if (typeof row.getElements !== 'function')
+            {
+                return;
+            }
+
+            row.getElements('.choices').each(function(choices)
+            {
+                var select = choices.getElement('select');
+                if (select)
+                {
+                    // Restore the plain select next to the wrapper and strip the state Choices added.
+                    select.inject(choices, 'before');
+                    select.removeClass('choices__input');
+                    select.erase('hidden');
+                    select.erase('tabindex');
+                    select.erase('aria-hidden');
+                    select.erase('data-choice');
+                    select.setStyle('display', '');
+                }
+                choices.destroy();
+            });
+        },
+
+        /**
+         * Whether the element's data-controller attribute already lists the given Stimulus controller.
+         * @param Element element
+         * @param string name The controller identifier, e.g. "contao--tinymce".
+         * @return boolean
+         */
+        hasController: function(element, name)
+        {
+            return (element.getAttribute('data-controller') || '').split(' ').indexOf(name) !== -1;
+        },
+
+        /**
+         * Add a Stimulus controller to the element's data-controller attribute (once).
+         * @param Element element
+         * @param string name
+         */
+        attachController: function(element, name)
+        {
+            var names = (element.getAttribute('data-controller') || '').split(' ')
+                .filter(function(part){ return part !== ''; });
+            if (names.indexOf(name) === -1)
+            {
+                names.push(name);
+                element.setAttribute('data-controller', names.join(' '));
+            }
+        },
+
+        /**
+         * Remove a Stimulus controller from the element's data-controller attribute.
+         * @param Element element
+         * @param string name
+         */
+        detachController: function(element, name)
+        {
+            var names = (element.getAttribute('data-controller') || '').split(' ')
+                .filter(function(part){ return part !== '' && part !== name; });
+            if (names.length > 0)
+            {
+                element.setAttribute('data-controller', names.join(' '));
+            }
+            else
+            {
+                element.removeAttribute('data-controller');
             }
         }
     });
@@ -907,46 +1083,3 @@ MultiColumnWizard.addOperationClickCallback('down', MultiColumnWizard.downClick)
         }, 500);
     };
 })(window.Backend);
-
-
-/**
- * Compare Versions
- *
- * Example:
- * versionCompare('3.1', '3.2') => -1
- * versionCompare('3.1', '3.1') =>  0
- * versionCompare('3.2', '3.1') =>  1
- *
- * @function
- *
- * @return {Number}
- */
-versionCompare = function(toCompare) {
-
-    // Get Version-Class and convert it to a valid Version-String
-    var version = $('top').get('class').match(/version_[^\s]*/);
-    version = version[0];
-    version = version.replace('version_', '');
-    version = version.split('-').join('.');
-
-    if (typeof version !== 'string') {
-        return false;
-    }
-
-    if (typeof toCompare + typeof version != 'stringstring')
-        return false;
-
-    var a = toCompare.split('.')
-        ,   b = version.split('.')
-        ,   i = 0, len = Math.max(a.length, b.length);
-
-    for (; i < len; i++) {
-        if ((a[i] && !b[i] && parseInt(a[i]) > 0) || (parseInt(a[i]) > parseInt(b[i]))) {
-            return 1;
-        } else if ((b[i] && !a[i] && parseInt(b[i]) > 0) || (parseInt(a[i]) < parseInt(b[i]))) {
-            return -1;
-        }
-    }
-
-    return 0;
-};
