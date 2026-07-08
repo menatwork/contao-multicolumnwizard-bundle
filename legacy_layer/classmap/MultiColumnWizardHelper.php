@@ -22,11 +22,8 @@
 
 use Contao\DataContainer;
 use Contao\System;
-use Contao\Template;
 use MenAtWork\MultiColumnWizardBundle\EventListener\Contao\ExecutePostActions;
 use MenAtWork\MultiColumnWizardBundle\EventListener\Contao\InitializeSystem;
-use MenAtWork\MultiColumnWizardBundle\EventListener\Contao\LoadDataContainer;
-use MenAtWork\MultiColumnWizardBundle\EventListener\Contao\ParseTemplate;
 use MenAtWork\MultiColumnWizardBundle\Helper\MultiColumnWizardHelper as BundleMultiColumnWizardHelper;
 
 /**
@@ -54,62 +51,6 @@ class MultiColumnWizardHelper extends BundleMultiColumnWizardHelper
         );
 
         parent::__construct();
-    }
-
-    /**
-     * Add the scripts and css files to the template.
-     *
-     * @param Template $objTemplate The template.
-     *
-     * @return void
-     *
-     * @deprecated Use the service MenAtWork\MultiColumnWizardBundle\EventListener\Contao\ParseTemplate
-     */
-    public function addScriptsAndStyles(Template $objTemplate)
-    {
-        $serviceName = ParseTemplate::class;
-        trigger_error(
-            sprintf(
-                'Use of deprecated function "%s::%s". Use instead the service "%s::%s"',
-                __CLASS__,
-                __FUNCTION__,
-                $serviceName,
-                __FUNCTION__
-            ),
-            E_USER_DEPRECATED
-        );
-
-        /** @var MenAtWork\MultiColumnWizardBundle\EventListener\Contao\ParseTemplate $helper */
-        $helper = System::getContainer()->get($serviceName);
-        $helper->addScriptsAndStyles($objTemplate);
-    }
-
-    /**
-     * Support the modal selector.
-     *
-     * @param string $strTable The table name.
-     *
-     * @return void
-     *
-     * @deprecated Use the service MenAtWork\MultiColumnWizardBundle\EventListener\Contao\LoadDataContainer
-     */
-    public function supportModalSelector($strTable)
-    {
-        $serviceName = LoadDataContainer::class;
-        trigger_error(
-            sprintf(
-                'Use of deprecated function "%s::%s". Use instead the service "%s::%s"',
-                __CLASS__,
-                __FUNCTION__,
-                $serviceName,
-                __FUNCTION__
-            ),
-            E_USER_DEPRECATED
-        );
-
-        /** @var MenAtWork\MultiColumnWizardBundle\EventListener\Contao\LoadDataContainer $helper */
-        $helper = System::getContainer()->get($serviceName);
-        $helper->supportModalSelector($strTable);
     }
 
     /**

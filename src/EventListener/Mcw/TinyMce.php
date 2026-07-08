@@ -39,6 +39,8 @@ class TinyMce
      * @param GetTinyMceStringEvent $event The event.
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
      */
     public function executeEvent(GetTinyMceStringEvent $event)
     {
