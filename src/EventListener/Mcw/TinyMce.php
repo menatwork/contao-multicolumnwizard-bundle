@@ -62,8 +62,9 @@ class TinyMce
             }
         }
 
-        // Convert fileBrowserTypes to a comma-separated string for TinyMCE compatibility.
-        $fileBrowserTypesString = implode(',', $fileBrowserTypes);
+        // TinyMCE's file_picker_types expects a space-separated list (see Contao core's
+        // DataContainer::getTinyMceEditor()).
+        $fileBrowserTypesString = implode(' ', $fileBrowserTypes);
 
         /** @var BackendTemplate|object $objTemplate */
         $objTemplate                   = new BackendTemplate('be_' . $file);
