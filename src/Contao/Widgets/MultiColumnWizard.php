@@ -599,11 +599,7 @@ class MultiColumnWizard extends Widget
      */
     public function getDcDriver()
     {
-        if (method_exists(DataContainer::class, 'getDriverForTable')) {
-            $dataContainer = DataContainer::getDriverForTable($this->strTable);
-        } else {
-            $dataContainer = 'DC_' . $GLOBALS['TL_DCA'][$this->strTable]['config']['dataContainer'];
-        }
+        $dataContainer = DataContainer::getDriverForTable($this->strTable);
 
         if ($dataContainer == \DC_General::class) {
             $dcgXRequestTemp                  = $_SERVER['HTTP_X_REQUESTED_WITH'];
@@ -810,21 +806,12 @@ class MultiColumnWizard extends Widget
                 $arrColorpicker[] = $strKey;
             }
 
-            // Store tiny mce fields
+            // Store tiny mce fields. Contao 5 no longer evaluates $GLOBALS['TL_RTE']; the editor is
+            // rendered per column via the be_tinyMCE event listener (getMcWTinyMCEString() below).
             if (
                 isset($arrField['eval']['rte']) && $arrField['eval']['rte']
                 && strncmp($arrField['eval']['rte'], 'tiny', 4) === 0
             ) {
-                foreach ($this->varValue as $row => $value) {
-                    $tinyId = 'ctrl_' . $this->strField . '_row' . $row . '_' . $strKey;
-
-                    $GLOBALS['TL_RTE']['tinyMCE'][$tinyId] = array(
-                        'id'   => $tinyId,
-                        'file' => 'tinyMCE',
-                        'type' => null
-                    );
-                }
-
                 $arrTinyMCE[] = $strKey;
             }
         }
@@ -985,18 +972,8 @@ class MultiColumnWizard extends Widget
 
                 // Contao changed the name for FileTree and PageTree widgets
                 // @see https://github.com/menatwork/contao-multicolumnwizard-bundle/issues/51
-                $contaoVersion = $this->contaoApi->getContaoVersion();
-
-                if (
-                    (
-                        version_compare($contaoVersion, '4.4.41', '>=')
-                        && version_compare($contaoVersion, '4.5.0', '<')
-                    )
-                    || version_compare($contaoVersion, '4.7.7', '>=')
-                ) {
-                    $strWidget = str_replace(['reloadFiletree', 'reloadFiletreeDMA'], 'reloadFiletree_mcw', $strWidget);
-                    $strWidget = str_replace(['reloadPagetree', 'reloadPagetreeDMA'], 'reloadPagetree_mcw', $strWidget);
-                }
+                $strWidget = str_replace(['reloadFiletree', 'reloadFiletreeDMA'], 'reloadFiletree_mcw', $strWidget);
+                $strWidget = str_replace(['reloadPagetree', 'reloadPagetreeDMA'], 'reloadPagetree_mcw', $strWidget);
 
                 // Build array of items
                 if (!empty($arrField['eval']['columnPos'])) {
@@ -1873,14 +1850,5 @@ SCRIPT;
         }
 
         return null;
-    }
-
-    public function cspUnsafeInlineStyle(string $style, string $algorithm = 'sha384'): string
-    {
-        if (!method_exists(parent::class, 'cspUnsafeInlineStyle')) {
-            return $style;
-        }
-
-        return parent::cspUnsafeInlineStyle($style, $algorithm);
     }
 }

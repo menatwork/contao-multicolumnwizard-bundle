@@ -12,23 +12,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - contao: '~4.13.0'
-            php: '8.2'
-            phpcq_install: 'update'
-            phpcq_flags: '--exit-0'
-          - contao:        '~5.3.0'
-            php:           '8.2'
-            phpcq_install: 'update'
-            phpcq_flags:   ''
-          - contao: '~5.3.0'
-            php: '8.3'
-            phpcq_install: 'update'
-            phpcq_flags: '--exit-0'
+        php: [ '8.4', '8.5' ]
+        contao: [ '~5.7.0' ]
+        phpcq_install: [ 'update' ]
+        output: [ '-o github-action -o default' ]
 
     steps:
       - name: PHP ${{ matrix.php }} ${{ matrix.contao }} Pull source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -40,7 +31,7 @@ jobs:
           coverage:    none
 
       - name: PHP ${{ matrix.php }} ${{ matrix.contao }} Cache composer cache directory
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           cache-name: composer-cache-dir-${{ matrix.php }}-${{ matrix.contao }}
         with:
@@ -48,7 +39,7 @@ jobs:
           key:  ${{ runner.os }}-build-${{ env.cache-name }}
 
       - name: PHP ${{ matrix.php }} ${{ matrix.contao }} Cache vendor directory
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           cache-name: composer-vendor-${{ matrix.php }}-${{ matrix.contao }}
         with:
@@ -71,7 +62,7 @@ jobs:
 
       - name: PHP ${{ matrix.php }} ${{ matrix.contao }} Upload build directory to artifact
         uses: actions/upload-artifact@v4
-        if:   ${{ success() }} || ${{ failure() }}
+        if:   success() || failure()
         with:
           name: phpcq-builds-php-${{ matrix.php }}-${{ matrix.contao }}
           path: .phpcq/build/

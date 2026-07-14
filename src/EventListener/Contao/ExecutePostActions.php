@@ -3,7 +3,7 @@
 /**
  * This file is part of menatwork/contao-multicolumnwizard-bundle.
  *
- * (c) 2012-2024 MEN AT WORK.
+ * (c) 2012-2026 MEN AT WORK.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -19,7 +19,7 @@
  * @author     Ingolf Steinhardt <info@e-spin.de>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH
- * @copyright  2013-2024 MEN AT WORK
+ * @copyright  2013-2026 MEN AT WORK
  * @license    https://github.com/menatwork/contao-multicolumnwizard-bundle/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
@@ -45,9 +45,7 @@ use Contao\FilesModel;
 use Contao\Input;
 use Contao\PageTree;
 use Contao\StringUtil;
-use Contao\System;
 use Contao\Widget;
-use Doctrine\ORM\Mapping as ORM;
 use MenAtWork\MultiColumnWizardBundle\Contao\Widgets\MultiColumnWizard;
 use MenAtWork\MultiColumnWizardBundle\EventListener\BaseListener;
 use MenAtWork\MultiColumnWizardBundle\Event\CreateWidgetEvent;
@@ -207,40 +205,14 @@ class ExecutePostActions extends BaseListener
 
         $intId    = Input::get('id');
         $strField = $this->getInputName($container);
-        // Contao changed the name for FileTree and PageTree widgets
+        // The posted name is a bracket path: "base[row][sub]" for a single wizard and
+        // "base[row][sub][row][sub]..." for nested wizards. Descend to the leaf column so the reload
+        // rebuilds the actual field (fileTree/pageTree) instead of the intermediate wizard.
         // @see https://github.com/menatwork/contao-multicolumnwizard-bundle/issues/51
-        $contaoVersion = $this->contaoApi->getContaoVersion();
-        $vNameCheck    = (
-                version_compare($contaoVersion, '4.4.41', '>=')
-                && version_compare($contaoVersion, '4.5.0', '<')
-            ) || version_compare($contaoVersion, '4.7.7', '>=');
-
-        $containerField = '';
-        if ($vNameCheck) {
-            // The posted name is a bracket path: "base[row][sub]" for a single wizard and
-            // "base[row][sub][row][sub]..." for nested wizards. Descend to the leaf column so the reload
-            // rebuilds the actual field (fileTree/pageTree) instead of the intermediate wizard.
-            $fieldParts      = preg_split('/[\[\]]+/', $strField, -1, PREG_SPLIT_NO_EMPTY);
-            $fieldPartsCount = count($fieldParts);
-            $containerField  = $strField;
-            $mcwBaseName     = $fieldParts[0];
-            $intRow          = $fieldParts[1] ?? 0;
-            $mcwSupFieldName = $fieldParts[2] ?? '';
-            for ($i = 3; ($i + 1) < $fieldPartsCount; $i += 2) {
-                $intRow          = $fieldParts[$i];
-                $mcwSupFieldName = $fieldParts[$i + 1];
-            }
-        } else {
-            // Get the field name parts.
-            $fieldParts = preg_split('/_row[0-9]*_/i', $strField);
-            preg_match('/_row[0-9]*_/i', $strField, $arrRow);
-            $intRow = substr(substr($arrRow[0], 4), 0, -1);
-
-            // Rebuild field name.
-            $containerField  = $fieldParts[0] . '[' . $intRow . '][' . $fieldParts[1] . ']';
-            $mcwBaseName     = $fieldParts[0];
-            $mcwSupFieldName = $fieldParts[1];
-        }
+        $fieldParts      = preg_split('/[\[\]]+/', $strField, -1, PREG_SPLIT_NO_EMPTY);
+        $fieldPartsCount = count($fieldParts);
+        $containerField  = $strField;
+        $mcwBaseName     = $fieldParts[0];
 
         if (!($container instanceof DataContainerInterface)) {
             $container->field = $containerField;
@@ -251,27 +223,18 @@ class ExecutePostActions extends BaseListener
             $intId = $idModel->getId();
         }
 
-        if ($vNameCheck) {
-            // Build the full underscore id the wizard uses in the DOM from the bracket path, e.g.
-            // "base[0][sub][1][leaf]" => "base_row0_sub_row1_leaf". A truncated id would make the
-            // reloaded widget replace the wrong element and break the picker callback.
-            $mcwId = $mcwBaseName;
-            for ($i = 1; ($i + 1) < $fieldPartsCount; $i += 2) {
-                $mcwId .= '_row' . $fieldParts[$i] . '_' . $fieldParts[$i + 1];
-            }
-        } else {
-            $mcwId = $mcwBaseName . '_row' . $intRow . '_' . $mcwSupFieldName;
+        // Build the full underscore id the wizard uses in the DOM from the bracket path, e.g.
+        // "base[0][sub][1][leaf]" => "base_row0_sub_row1_leaf". A truncated id would make the
+        // reloaded widget replace the wrong element and break the picker callback.
+        $mcwId = $mcwBaseName;
+        for ($i = 1; ($i + 1) < $fieldPartsCount; $i += 2) {
+            $mcwId .= '_row' . $fieldParts[$i] . '_' . $fieldParts[$i + 1];
         }
 
         // Handle the keys in "edit multiple" mode
         if (Input::get('act') == 'editAll') {
-            if ($vNameCheck) {
-                $intId       = preg_replace('/.*_([0-9a-zA-Z]+)$/', '$1', $mcwBaseName);
-                $mcwBaseName = preg_replace('/(.*)_[0-9a-zA-Z]+$/', '$1', $mcwBaseName);
-            } else {
-                $intId    = preg_replace('/.*_([0-9a-zA-Z]+)$/', '$1', $strField);
-                $strField = preg_replace('/(.*)_[0-9a-zA-Z]+$/', '$1', $strField);
-            }
+            $intId       = preg_replace('/.*_([0-9a-zA-Z]+)$/', '$1', $mcwBaseName);
+            $mcwBaseName = preg_replace('/(.*)_[0-9a-zA-Z]+$/', '$1', $mcwBaseName);
         }
 
 
@@ -288,19 +251,15 @@ class ExecutePostActions extends BaseListener
             // Descend the columnFields to the leaf config. For a single wizard this resolves the sub
             // field directly; for nested wizards ("base[r][sub][r][leaf]") it walks sub -> leaf.
             $leafConfig = null;
-            if ($vNameCheck) {
-                $cursor = $fields;
-                for ($i = 2; $i < $fieldPartsCount; $i += 2) {
-                    $key = $fieldParts[$i];
-                    if (!isset($cursor[$key])) {
-                        $leafConfig = null;
-                        break;
-                    }
-                    $leafConfig = $cursor[$key];
-                    $cursor     = $leafConfig['eval']['columnFields'] ?? [];
+            $cursor     = $fields;
+            for ($i = 2; $i < $fieldPartsCount; $i += 2) {
+                $key = $fieldParts[$i];
+                if (!isset($cursor[$key])) {
+                    $leafConfig = null;
+                    break;
                 }
-            } else {
-                $leafConfig = $fields[$mcwSupFieldName] ?? null;
+                $leafConfig = $cursor[$key];
+                $cursor     = $leafConfig['eval']['columnFields'] ?? [];
             }
 
             if (null !== $leafConfig) {
@@ -408,10 +367,8 @@ class ExecutePostActions extends BaseListener
         $objWidget = $this->buildWidget($container, $strKey, $strField, $mcwId, $varValue);
         $strWidget = $objWidget->generate();
 
-        if ($vNameCheck) {
-            $strWidget = str_replace(['reloadFiletree', 'reloadFiletreeDMA'], 'reloadFiletree_mcw', $strWidget);
-            $strWidget = str_replace(['reloadPagetree', 'reloadPagetreeDMA'], 'reloadPagetree_mcw', $strWidget);
-        }
+        $strWidget = str_replace(['reloadFiletree', 'reloadFiletreeDMA'], 'reloadFiletree_mcw', $strWidget);
+        $strWidget = str_replace(['reloadPagetree', 'reloadPagetreeDMA'], 'reloadPagetree_mcw', $strWidget);
 
         throw new ResponseException($this->convertToResponse($strWidget));
     }

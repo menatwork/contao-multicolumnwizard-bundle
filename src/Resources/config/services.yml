@@ -11,12 +11,6 @@ services:
     arguments:
       - '@MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService'
 
-  MenAtWork\MultiColumnWizardBundle\EventListener\Contao\LoadDataContainer:
-    public: true
-
-  MenAtWork\MultiColumnWizardBundle\EventListener\Contao\ParseTemplate:
-    public: true
-
   MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService:
     public: true
     arguments:

@@ -3,7 +3,7 @@
 /**
  * This file is part of menatwork/contao-multicolumnwizard-bundle.
  *
- * (c) 2012-2019 MEN AT WORK.
+ * (c) 2012-2026 MEN AT WORK.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,20 +14,17 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Stefan Heimes <stefan_heimes@hotmail.com>
  * @author     Fritz Michael Gschwantner <fmg@inspiredminds.at>
+ * @author     Ingolf Steinhardt <info@e-spin.de>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH
- * @copyright  2013-2019 MEN AT WORK
+ * @copyright  2013-2026 MEN AT WORK
  * @license    https://github.com/menatwork/contao-multicolumnwizard-bundle/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
 
 namespace MenAtWork\MultiColumnWizardBundle\EventListener\Mcw;
 
-use Contao\CoreBundle\Framework\Adapter;
-use Contao\Image;
-use Contao\StringUtil;
 use MenAtWork\MultiColumnWizardBundle\Event\GetColorPickerStringEvent;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Class ColorPicker
@@ -35,44 +32,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ColorPicker
 {
     /**
-     * Adapter to the image class.
-     *
-     * @var Image|Adapter
-     */
-    private $imageAdapter;
-
-    /**
-     * Adapter to the StringUtil class.
-     *
-     * @var StringUtil|Adapter
-     */
-    private $stringUtilAdapter;
-
-    /**
-     * The translator.
-     *
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * ColorPicker constructor.
-     *
-     * @param Adapter|Image       $imageAdapter      Adapter to the image class.
-     *
-     * @param Adapter|StringUtil  $stringUtilAdapter Adapter to the StringUtil class.
-     *
-     * @param TranslatorInterface $translator        Translator class.
-     */
-    public function __construct($imageAdapter, $stringUtilAdapter, $translator)
-    {
-        $this->imageAdapter      = $imageAdapter;
-        $this->stringUtilAdapter = $stringUtilAdapter;
-        $this->translator        = $translator;
-    }
-
-    /**
-     * Generate the TinyMce Script.
+     * Generate the color picker markup.
      *
      * @param GetColorPickerStringEvent $event The event.
      *
@@ -87,37 +47,31 @@ class ColorPicker
         // Support single fields as well (see #5240)
         $fieldId = isset($fieldConfiguration['eval']['multiple']) ? $fieldId . '_0' : $fieldId;
 
-        // Crate the placeholder string.
-        $placeHolder = <<<HTML
- %1\$s
+        // Contao 5 dropped MooRainbow in favour of the "contao--color-picker" Stimulus controller
+        // (based on Pickr). Attach the controller to the field wrapper, flag the input as its target
+        // and add the button target; the controller renders the picker and keeps the hex value in sync.
+        $colorPicker = <<<HTML
+<div data-contao--color-picker-target="button"></div>
 <script>
-  window.addEvent("domready", function() {
-    var cl = $("ctrl_%2\$s").value.hexToRgb(true) || [255, 0, 0];
-    new MooRainbow("moo_%2\$s", {
-      id: "ctrl_%2\$s",
-      startColor: cl,
-      imgPath: "assets/colorpicker/images/",
-      onComplete: function(color) {
-        $("ctrl_%2\$s").value = color.hex.replace("#", "");
-      }
+  (function() {
+    var input = document.getElementById("ctrl_$fieldId");
+    if (!input || !input.parentNode) {
+      return;
+    }
+    input.setAttribute("data-contao--color-picker-target", "input");
+    var wrapper = input.parentNode;
+    wrapper.setAttribute("data-contao--color-picker-theme-value", "monolith");
+    var controllers = (wrapper.getAttribute("data-controller") || "").split(" ").filter(function(name) {
+      return name !== "";
     });
-  });
+    if (controllers.indexOf("contao--color-picker") === -1) {
+      controllers.push("contao--color-picker");
+      wrapper.setAttribute("data-controller", controllers.join(" "));
+    }
+  })();
 </script>
 HTML;
 
-        $altText = $this->translator->trans('MSC.colorpicker', [], 'contao_default');
-        // Create the image.
-        $imageString = $this->imageAdapter->getHtml(
-            'pickcolor.svg',
-            $altText,
-            sprintf(
-                'title="%s" id="moo_%s" style="cursor:pointer"',
-                $this->stringUtilAdapter->specialchars($altText),
-                $fieldId
-            )
-        );
-
-        // Fill all with live.
-        $event->setColorPicker(sprintf($placeHolder, $imageString, $fieldId));
+        $event->setColorPicker($colorPicker);
     }
 }

@@ -12,14 +12,14 @@
  *
  * @package    menatwork/contao-multicolumnwizard-bundle
  * @author     Stefan Heimes <stefan_heimes@hotmail.com>
- * @copyright  2013-2023 MEN AT WORK
+ * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @copyright  2013-2026 MEN AT WORK
  * @license    https://github.com/menatwork/contao-multicolumnwizard-bundle/blob/master/LICENSE LGPL-3.0-or-later
  * @filesource
  */
 
 namespace MenAtWork\MultiColumnWizardBundle\Service;
 
-use Composer\InstalledVersions;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -66,15 +66,5 @@ class ContaoApiService
         }
 
         return $this->scopeMatcher->isFrontendRequest($this->requestStack->getCurrentRequest());
-    }
-
-    /**
-     * Get the version of the current Contao.
-     *
-     * @return string|null
-     */
-    public function getContaoVersion(): ?string
-    {
-        return InstalledVersions::getPrettyVersion('contao/core-bundle');
     }
 }

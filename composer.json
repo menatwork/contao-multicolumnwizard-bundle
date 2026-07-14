@@ -6,9 +6,16 @@
   "keywords": [
     "contao",
     "widget",
-    "wizard"
+    "wizard",
+    "mcw"
   ],
   "authors": [
+    {
+      "name": "Ingolf Steinhardt",
+      "email": "info@e-spin.de",
+      "homepage": "https://www.e-spin.de",
+      "role": "Developer"
+    },
     {
       "name": "Stefan Heimes",
       "email": "stefan_heimes@hotmail.com",
@@ -49,23 +56,22 @@
   "support": {
     "issues": "https://github.com/menatwork/MultiColumnWizard/issues",
     "wiki": "https://de.contaowiki.org/MultiColumnWizard",
-    "irc": "irc://irc.freenode.org/contao.dev",
     "source": "https://github.com/menatwork/MultiColumnWizard"
   },
   "require": {
-    "php": "^8.1",
+    "php": "^8.3",
     "ext-json": "*",
-    "contao/core-bundle": "^4.13 || ^5.0",
-    "symfony/config": "^5.4 || ^6.0 || ^7.0",
-    "symfony/console": "^5.4 || ^6.0 || ^7.0",
-    "symfony/dependency-injection": "^5.4 || ^6.0 || ^7.0",
-    "symfony/event-dispatcher": "^5.4 || ^6.0 || ^7.0",
-    "symfony/http-foundation": "^5.4 || ^6.0 || ^7.0",
-    "symfony/http-kernel": "^5.4 || ^6.0 || ^7.0",
-    "symfony/translation": "^5.4 || ^6.0 || ^7.0"
+    "contao/core-bundle": "^5.7",
+    "symfony/config": "^7.4",
+    "symfony/console": "^7.4",
+    "symfony/dependency-injection": "^7.4",
+    "symfony/event-dispatcher": "^7.4",
+    "symfony/http-foundation": "^7.4",
+    "symfony/http-kernel": "^7.4",
+    "symfony/translation": "^7.4"
   },
   "require-dev": {
-    "contao-community-alliance/dc-general": "^2.3",
+    "contao-community-alliance/dc-general": "^2.5@dev",
     "contao/manager-plugin": "^2.1",
     "phpcq/runner-bootstrap": "^1.0@dev",
     "roave/security-advisories": "dev-latest"
@@ -104,10 +110,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-develop": "3.7.x-dev",
-      "dev-master": "3.6.x-dev",
-      "dev-support/contao3": "3.3.x-dev",
-      "dev-support/contao4.4": "3.4.x-dev"
+      "dev-develop": "3.7.x-dev"
     },
     "contao-manager-plugin": "MenAtWork\\MultiColumnWizardBundle\\ContaoManager\\Plugin"
   }

@@ -1,7 +1,8 @@
 /**
  * Contao Open Source CMS
  *
- * @copyright   MEN AT WORK 2013-2024
+ * @copyright   MEN AT WORK 2013-2026
+ * @author      Ingolf Steinhardt <info@e-spin.de>
  * @package     MultiColumnWizard
  * @license     GNU/LGPL
  * @info        tab is set to 4 whitespaces
@@ -21,17 +22,35 @@
     height: auto;
 }
 
-.multicolumnwizard .tl_select,
-.multicolumnwizard .tl_mselect {
+.multicolumnwizard select.tl_select,
+.multicolumnwizard select.tl_mselect {
     width: auto;
+}
+
+/*
+ * Contao 5 enhances a "chosen" select with Choices.js (the contao--choices controller), which copies
+ * the select's classes - including tl_select - onto its generated .choices wrapper. Qualifying the
+ * rule above with "select" keeps that wrapper out of it; otherwise width:auto would shrink it to its
+ * content. The wrapper fills its container, and the field's own width (eval.style) is mirrored onto
+ * the .tl_select_wrapper by MultiColumnWizard.syncChoicesWidth() so existing DCAs keep working.
+ */
+.multicolumnwizard .tl_select_wrapper .choices {
+    width: 100%;
 }
 
 .multicolumnwizard .tl_checkbox_single_container {
     margin-top: 0;
 }
 
+/*
+ * Hide the column's own field label (the header row already shows it). The field label is either an
+ * <h3>/<label for="ctrl_..."> or, for a radio/checkbox widget, the fieldset <legend>. Scoping the
+ * <label> rule to "for=ctrl_..." (the widget control) keeps the option labels of radio, radioTable
+ * and checkbox widgets ("for=opt_...", "for=<name>_<i>_<j>", "for=check_all_...") visible.
+ */
 .multicolumnwizard .hidelabel h3,
-.multicolumnwizard .hidelabel label {
+.multicolumnwizard .hidelabel legend,
+.multicolumnwizard .hidelabel label[for^="ctrl_"] {
     display: none;
 }
 
@@ -52,7 +71,7 @@
     display: inline-block;
 }
 
-.multicolumnwizard a[rel="move"] {
+.multicolumnwizard a[data-operations="move"] {
     cursor: move;
 }
 
@@ -94,4 +113,15 @@
 /* Override contao flexible theme */
 .tl_modulewizard {
     max-width:100%;
+}
+
+/*
+ * A radioTable widget renders its own <table class="tl_radio_table"> inside an MCW cell. Because that
+ * table sits within ".tl_modulewizard", the core rule ".tl_modulewizard td:first-child { width:1%;
+ * white-space:nowrap }" (meant for the wizard's own narrow first column) also squeezes the radio
+ * table's first cell and breaks its layout. Reset it for the inner table.
+ */
+.multicolumnwizard .tl_radio_table td:first-child {
+    width: auto;
+    white-space: normal;
 }

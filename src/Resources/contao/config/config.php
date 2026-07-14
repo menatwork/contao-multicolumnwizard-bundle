@@ -27,13 +27,11 @@
  */
 
 use MenAtWork\MultiColumnWizardBundle\Contao\Widgets\MultiColumnWizard;
-use MenAtWork\MultiColumnWizardBundle\EventListener\Contao\LoadDataContainer;
 use MenAtWork\MultiColumnWizardBundle\EventListener\Contao\InitializeSystem;
 use MenAtWork\MultiColumnWizardBundle\EventListener\Contao\ExecutePostActions;
 
 $GLOBALS['BE_FFL']['multiColumnWizard'] = MultiColumnWizard::class;
 
-$GLOBALS['TL_HOOKS']['loadDataContainer'][]  = [LoadDataContainer::class, 'supportModalSelector'];
 $GLOBALS['TL_HOOKS']['initializeSystem'][]   = [InitializeSystem::class, 'addSystemNecessaryThings'];
 $GLOBALS['TL_HOOKS']['initializeSystem'][]   = [InitializeSystem::class, 'changeAjaxPostActions'];
 $GLOBALS['TL_HOOKS']['executePostActions'][] = [ExecutePostActions::class, 'executePostActions'];

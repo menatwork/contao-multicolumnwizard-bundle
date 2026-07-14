@@ -21,11 +21,9 @@
 
 namespace MenAtWork\MultiColumnWizardBundle\Test\EventListener\Mcw;
 
-use Contao\CoreBundle\Framework\Adapter;
 use MenAtWork\MultiColumnWizardBundle\Event\GetColorPickerStringEvent;
 use MenAtWork\MultiColumnWizardBundle\EventListener\Mcw\ColorPicker;
 use PHPUnit\Framework\TestCase;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * This tests the color picker event listener.
@@ -36,44 +34,7 @@ class ColorPickerTest extends TestCase
 {
     public function testExecuteEvent()
     {
-        $stringUtilAdapter = $this
-            ->getMockBuilder(Adapter::class)
-            ->addMethods(['specialchars'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $stringUtilAdapter
-            ->expects($this->once())
-            ->method('specialchars')
-            ->with('translated')
-            ->willReturn('stripped');
-
-        $imageAdapter = $this
-            ->getMockBuilder(Adapter::class)
-            ->addMethods(['getHtml'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $imageAdapter
-            ->expects($this->once())
-            ->method('getHtml')
-            ->with(
-                'pickcolor.svg',
-                'translated',
-                sprintf(
-                    'title="%s" id="moo_%s" style="cursor:pointer"',
-                    'stripped',
-                    'fieldId'
-                )
-            )
-            ->willReturn('<image>');
-
-        $translator = $this->getMockForAbstractClass(TranslatorInterface::class);
-        $translator
-            ->expects($this->once())
-            ->method('trans')
-            ->with('MSC.colorpicker', [], 'contao_default')
-            ->willReturn('translated');
-
-        $listener = new ColorPicker($imageAdapter, $stringUtilAdapter, $translator);
+        $listener = new ColorPicker();
 
         $event = new GetColorPickerStringEvent('fieldId', 'tableName', [], 'fieldName');
 
@@ -81,19 +42,24 @@ class ColorPickerTest extends TestCase
 
         $this->assertSame(
             <<<HTML
- <image>
+<div data-contao--color-picker-target="button"></div>
 <script>
-  window.addEvent("domready", function() {
-    var cl = $("ctrl_fieldId").value.hexToRgb(true) || [255, 0, 0];
-    new MooRainbow("moo_fieldId", {
-      id: "ctrl_fieldId",
-      startColor: cl,
-      imgPath: "assets/colorpicker/images/",
-      onComplete: function(color) {
-        $("ctrl_fieldId").value = color.hex.replace("#", "");
-      }
+  (function() {
+    var input = document.getElementById("ctrl_fieldId");
+    if (!input || !input.parentNode) {
+      return;
+    }
+    input.setAttribute("data-contao--color-picker-target", "input");
+    var wrapper = input.parentNode;
+    wrapper.setAttribute("data-contao--color-picker-theme-value", "monolith");
+    var controllers = (wrapper.getAttribute("data-controller") || "").split(" ").filter(function(name) {
+      return name !== "";
     });
-  });
+    if (controllers.indexOf("contao--color-picker") === -1) {
+      controllers.push("contao--color-picker");
+      wrapper.setAttribute("data-controller", controllers.join(" "));
+    }
+  })();
 </script>
 HTML
             ,

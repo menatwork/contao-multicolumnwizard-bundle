@@ -107,7 +107,6 @@ class DeprecatedAutoloaderTest extends TestCase
                             ->getMock();
                         $contaoService->method('isBackend')->willReturn(true);
                         $contaoService->method('isFrontend')->willReturn(false);
-                        $contaoService->method('getContaoVersion')->willReturn('3.9.0');
                         return $contaoService;
                     case 'event_dispatcher':
                         $contaoEventDispatcher = $this
