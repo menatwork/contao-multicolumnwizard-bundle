@@ -39,6 +39,16 @@ var MultiColumnWizard = new Class(
             // make sure we really have the table as element
             this.options.table = document.id(this.options.table);
 
+            // The inline init script registers its callback via window.addEvent('domready'). Turbo only
+            // swaps the <body>, so that callback stays attached to the surviving window and Contao
+            // re-fires domready after every render. The wizard of an already left page (e.g. the edit
+            // mask) is therefore initialized again on the next page (e.g. the content element list),
+            // where its element no longer exists.
+            if (!this.options.table)
+            {
+                return;
+            }
+
             // Do not run this in the frontend, Backend class would not be available
             if (window.Backend)
             {
@@ -1052,7 +1062,12 @@ MultiColumnWizard.addOperationClickCallback('down', MultiColumnWizard.downClick)
  * Patch Contao Core to support file & page tree
  */
 (function(Backend) {
-    if(!Backend) return;
+    // Turbo re-executes this file on every page visit. Without the marker the already patched
+    // openModalSelector would be stored as the "original" again, so the wrapper chain would grow
+    // with each visit.
+    if(!Backend || Backend.__mcwOpenModalSelector) return;
+    Backend.__mcwOpenModalSelector = true;
+
     Backend.openModalSelectorOriginal = Backend.openModalSelector;
     Backend.openModalSelector = function(options) {
         Backend.openModalSelectorOriginal(options);
