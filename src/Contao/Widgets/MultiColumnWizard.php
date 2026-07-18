@@ -1130,7 +1130,7 @@ class MultiColumnWizard extends Widget
                        . $this->addToUrl('key=table')
                        . '" title="'
                        . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['tw_import'][1])
-                       . '" onclick="Backend.getScrollOffset();">'
+                       . '" data-action="contao--scroll-offset#store">'
                        . Image::getHtml(
                            'tablewizard.svg',
                            $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
@@ -1160,7 +1160,7 @@ class MultiColumnWizard extends Widget
             $xlabel .= ' <a href="'
                        . $this->addToUrl('key=list')
                        . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['lw_import'][1])
-                       . '" onclick="Backend.getScrollOffset();">'
+                       . '" data-action="contao--scroll-offset#store">'
                        . Image::getHtml(
                            'tablewizard.svg',
                            $GLOBALS['TL_LANG']['MSC']['tw_import'][0],
