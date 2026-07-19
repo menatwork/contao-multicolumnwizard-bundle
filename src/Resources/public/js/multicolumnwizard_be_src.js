@@ -49,12 +49,6 @@ var MultiColumnWizard = new Class(
                 return;
             }
 
-            // Do not run this in the frontend, Backend class would not be available
-            if (window.Backend)
-            {
-                Backend.getScrollOffset();
-            }
-
             var self = this;
 
             this.options.table.getElement('tbody').getChildren('tr').each(function(el, index){
