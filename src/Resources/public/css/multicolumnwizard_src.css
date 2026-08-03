@@ -54,6 +54,16 @@
     display: none;
 }
 
+/*
+ * A single checkbox is the exception: Contao gives it no <h3> and no <legend>, its only text is the
+ * option label ("for=opt_..."), and that text *is* the column label - so leaving it visible repeats
+ * the header in every row. Contao wraps exactly this case in .tl_checkbox_single_container, which
+ * keeps the rule away from the option labels of real checkbox and radio lists.
+ */
+.multicolumnwizard .hidelabel .tl_checkbox_single_container label {
+    display: none;
+}
+
 .multicolumnwizard label {
     font-weight: normal;
     float: left;
