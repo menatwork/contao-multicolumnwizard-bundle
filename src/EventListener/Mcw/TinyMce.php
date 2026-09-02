@@ -72,7 +72,6 @@ class TinyMce
         $objTemplate->type             = $type;
         $objTemplate->fileBrowserTypes = $fileBrowserTypesString;
         $objTemplate->source           = $table . '.' . $fieldId;
-        $objTemplate->theme            = Backend::getTheme();
         $objTemplate->readonly         = (bool) ($field['eval']['readonly'] ?? false);
 
         // Contao 5's be_tinyMCE template guards the whole output with "enableTinyMce" and reads the

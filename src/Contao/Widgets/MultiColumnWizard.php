@@ -52,6 +52,7 @@ namespace MenAtWork\MultiColumnWizardBundle\Contao\Widgets;
 
 use Contao\BackendTemplate;
 use Contao\Controller;
+use Contao\CoreBundle\Twig\Runtime\CspRuntime;
 use Contao\DataContainer;
 use Contao\Date;
 use Contao\DC_File;
@@ -415,6 +416,29 @@ class MultiColumnWizard extends Widget
         }
 
         return parent::generateLabel();
+    }
+
+    /**
+     * Register the given inline style with the current response's CSP header and return it unchanged.
+     *
+     * Contao\Widget used to carry this itself; Contao 6 replaced it with the "csp_unsafe_inline_style"
+     * Twig filter (Contao\CoreBundle\Twig\Runtime\CspRuntime::unsafeInlineStyle()) and dropped the PHP
+     * method entirely. This widget still builds its markup as plain PHP strings rather than Twig, so it
+     * fetches the same runtime service directly instead of going through the filter.
+     *
+     * @param string $style The inline style attribute value.
+     *
+     * @return string
+     */
+    private function cspUnsafeInlineStyle(string $style): string
+    {
+        $cspRuntime = System::getContainer()->get('twig')->getRuntime(CspRuntime::class);
+        assert($cspRuntime instanceof CspRuntime);
+
+        $result = $cspRuntime->unsafeInlineStyle($style);
+        assert(\is_string($result));
+
+        return $result;
     }
 
     /**
