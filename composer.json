@@ -72,7 +72,7 @@
     "symfony/translation": "^7.4 || ^8.0"
   },
   "require-dev": {
-    "contao-community-alliance/dc-general": "^2.5@dev",
+    "contao-community-alliance/dc-general": "^2.5@dev || ^2.6@dev",
     "phpcq/runner-bootstrap": "^1.0@dev",
     "roave/security-advisories": "dev-latest"
   },
@@ -80,6 +80,8 @@
     "contao-legacy/multicolumnwizard": "*",
     "menatwork/contao-multicolumnwizard": ">=3.3.4 <4.0"
   },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "autoload": {
     "psr-4": {
       "MenAtWork\\MultiColumnWizardBundle\\": "src",
