@@ -10,6 +10,7 @@ services:
     public: true
     arguments:
       - '@MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService'
+      - '%kernel.debug%'
 
   MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService:
     public: true
