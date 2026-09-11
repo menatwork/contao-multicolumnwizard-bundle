@@ -25,7 +25,6 @@ namespace MenAtWork\MultiColumnWizardBundle\EventListener\Contao;
 
 use Contao\Environment;
 use Contao\Input;
-use Contao\System;
 use MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService;
 
 /**
@@ -39,11 +38,18 @@ class InitializeSystem
     private ContaoApiService $contaoApi;
 
     /**
-     * @param ContaoApiService $contaoApi
+     * @var bool
      */
-    public function __construct(ContaoApiService $contaoApi)
+    private bool $kernelDebug;
+
+    /**
+     * @param ContaoApiService $contaoApi
+     * @param bool             $kernelDebug
+     */
+    public function __construct(ContaoApiService $contaoApi, bool $kernelDebug)
     {
-        $this->contaoApi = $contaoApi;
+        $this->contaoApi   = $contaoApi;
+        $this->kernelDebug = $kernelDebug;
     }
 
     /**
@@ -60,12 +66,12 @@ class InitializeSystem
         }
 
         // Add the JS.
-        $GLOBALS['TL_JAVASCRIPT']['multicolumnwizard'] = System::getContainer()->get('kernel')->isDebug()
+        $GLOBALS['TL_JAVASCRIPT']['multicolumnwizard'] = $this->kernelDebug
             ? 'bundles/multicolumnwizard/js/multicolumnwizard_be_src.js'
             : 'bundles/multicolumnwizard/js/multicolumnwizard_be.js';
 
         // Add the css.
-        $GLOBALS['TL_CSS']['multicolumnwizard'] = System::getContainer()->get('kernel')->isDebug()
+        $GLOBALS['TL_CSS']['multicolumnwizard'] = $this->kernelDebug
             ? 'bundles/multicolumnwizard/css/multicolumnwizard_src.css'
             : 'bundles/multicolumnwizard/css/multicolumnwizard.css';
     }

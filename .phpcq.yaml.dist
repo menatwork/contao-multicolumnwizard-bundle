@@ -57,6 +57,10 @@ phpcq:
     - 31C7E470E2138192
     - 5E6DDE998AB73B8E
     - A978220305CD5C32
+    # phpcs / phpcbf - ab 4.0.2, neuer Release-Schluessel von Juliette Reinders Folmer.
+    # Fingerabdruck gegen die README von PHPCSStandards/PHP_CodeSniffer geprueft:
+    # 5CB4 F778 BF9B C4FB 67AE 511D 96E9 1A99 2CF2 2FF4
+    - 96E91A992CF22FF4
     - 689DAD778FF08760E046228BA978220305CD5C32
     - 97B02DD8E5071466
     - D91D86963AF3A29B6520462297B02DD8E5071466

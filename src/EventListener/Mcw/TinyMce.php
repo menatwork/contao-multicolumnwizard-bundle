@@ -25,7 +25,7 @@ namespace MenAtWork\MultiColumnWizardBundle\EventListener\Mcw;
 
 use Contao\Backend;
 use Contao\BackendTemplate;
-use Contao\System;
+use Contao\CoreBundle\Picker\PickerBuilderInterface;
 use MenAtWork\MultiColumnWizardBundle\Event\GetTinyMceStringEvent;
 
 /**
@@ -33,6 +33,19 @@ use MenAtWork\MultiColumnWizardBundle\Event\GetTinyMceStringEvent;
  */
 class TinyMce
 {
+    /**
+     * @var PickerBuilderInterface
+     */
+    private PickerBuilderInterface $pickerBuilder;
+
+    /**
+     * @param PickerBuilderInterface $pickerBuilder
+     */
+    public function __construct(PickerBuilderInterface $pickerBuilder)
+    {
+        $this->pickerBuilder = $pickerBuilder;
+    }
+
     /**
      * Generate the TinyMce Script.
      *
@@ -52,12 +65,9 @@ class TinyMce
         list ($file, $type) = explode('|', $field['eval']['rte'] ?? '') + [null, null];
 
         $fileBrowserTypes = [];
-        // Since we don't know if this is the right call for other versions of contao
-        // we won't use dependencies injection.
-        $pickerBuilder = System::getContainer()->get('contao.picker.builder');
 
         foreach (array('file' => 'image', 'link' => 'file') as $context => $fileBrowserType) {
-            if ($pickerBuilder->supportsContext($context)) {
+            if ($this->pickerBuilder->supportsContext($context)) {
                 $fileBrowserTypes[] = $fileBrowserType;
             }
         }
