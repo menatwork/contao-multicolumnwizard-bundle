@@ -34,7 +34,7 @@ Developers should add the Multicolumnwizard to their `composer.json` as a depend
 
 - `^3.8` for Contao `^6.0`
 - `^3.7` for Contao `^5.7`
-* `^3.6` for Contao `^4.13 || ^5.3`
+- `^3.6` for Contao `^4.13 || ^5.3`
 
 ## Usages
 
