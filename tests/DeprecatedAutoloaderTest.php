@@ -120,8 +120,6 @@ class DeprecatedAutoloaderTest extends TestCase
                         return null;
                 }
             });
-        define('TL_MODE', 'TEST');
-        define('TL_ROOT', sys_get_temp_dir());
 
         $mcw   = new MultiColumnWizard();
         $dummy = new Issue39Fixture();

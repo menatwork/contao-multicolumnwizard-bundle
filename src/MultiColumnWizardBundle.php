@@ -23,7 +23,6 @@
 namespace MenAtWork\MultiColumnWizardBundle;
 
 use MenAtWork\MultiColumnWizardBundle\DependencyInjection\MultiColumnWizardExtension;
-use Symfony\Component\Console\Application;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

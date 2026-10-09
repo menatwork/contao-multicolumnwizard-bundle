@@ -47,7 +47,7 @@ class ColorPicker
         // Support single fields as well (see #5240)
         $fieldId = isset($fieldConfiguration['eval']['multiple']) ? $fieldId . '_0' : $fieldId;
 
-        // Contao 5 dropped MooRainbow in favour of the "contao--color-picker" Stimulus controller
+        // Contao dropped MooRainbow in favour of the "contao--color-picker" Stimulus controller
         // (based on Pickr). Attach the controller to the field wrapper, flag the input as its target
         // and add the button target; the controller renders the picker and keeps the hex value in sync.
         $colorPicker = <<<HTML

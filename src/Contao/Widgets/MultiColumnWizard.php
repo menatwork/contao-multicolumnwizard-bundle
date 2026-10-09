@@ -830,7 +830,7 @@ class MultiColumnWizard extends Widget
                 $arrColorpicker[] = $strKey;
             }
 
-            // Store tiny mce fields. Contao 5 no longer evaluates $GLOBALS['TL_RTE']; the editor is
+            // Store tiny mce fields. Contao does not evaluate $GLOBALS['TL_RTE']; the editor is
             // rendered per column via the be_tinyMCE event listener (getMcWTinyMCEString() below).
             if (
                 isset($arrField['eval']['rte']) && $arrField['eval']['rte']
@@ -1076,13 +1076,7 @@ class MultiColumnWizard extends Widget
      */
     protected function initializeWidget(&$arrField, $intRow, $strKey, $varValue)
     {
-        $xlabel          = '';
-        $strContaoPrefix = 'contao/';
-
-        // YACE support for leo unglaub :)
-        if (defined('YACE')) {
-            $strContaoPrefix = '';
-        }
+        $xlabel = '';
 
         // pass activeRecord to widget
         if (isset($this->activeRecord)) {
@@ -1134,7 +1128,7 @@ class MultiColumnWizard extends Widget
             }
 
             $xlabel               .= ' <a href="'
-                                     . $strContaoPrefix . 'files.php' . $path
+                                     . 'contao/files.php' . $path
                                      . '" title="' . StringUtil::specialchars($GLOBALS['TL_LANG']['MSC']['fileManager'])
                                      . '" data-lightbox="files 765 80%">'
                                      . Image::getHtml(

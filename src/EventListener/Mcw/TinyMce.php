@@ -84,7 +84,7 @@ class TinyMce
         $objTemplate->source           = $table . '.' . $fieldId;
         $objTemplate->readonly         = (bool) ($field['eval']['readonly'] ?? false);
 
-        // Contao 5's be_tinyMCE template guards the whole output with "enableTinyMce" and reads the
+        // Contao's be_tinyMCE template guards the whole output with "enableTinyMce" and reads the
         // editor language from "tinyMceLanguage" (the former "language" variable is no longer used).
         $objTemplate->enableTinyMce    = $GLOBALS['TL_CONFIG']['useRTE'] ?? false;
         $objTemplate->tinyMceLanguage  = Backend::getTinyMceLanguage();
