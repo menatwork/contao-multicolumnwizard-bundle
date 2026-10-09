@@ -20,6 +20,7 @@
     "Contao\\ManagerPlugin\\Bundle\\BundlePluginInterface",
     "Contao\\ManagerPlugin\\Bundle\\Config\\BundleConfig",
     "Contao\\ManagerPlugin\\Bundle\\Parser\\ParserInterface",
+    "DC_General",
     "Symfony\\Contracts\\EventDispatcher\\Event",
     "Symfony\\Contracts\\Translation\\TranslatorInterface"
   ]
