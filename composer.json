@@ -60,16 +60,16 @@
   },
   "require": {
     "php": "^8.3",
-    "ext-json": "*",
     "contao/core-bundle": "^6.0",
     "contao/manager-plugin": "^2.1",
+    "monolog/monolog": "^3.0",
+    "psr/log": "^2.0 || ^3.0",
     "symfony/config": "^7.4 || ^8.0",
-    "symfony/console": "^7.4 || ^8.0",
     "symfony/dependency-injection": "^7.4 || ^8.0",
     "symfony/event-dispatcher": "^7.4 || ^8.0",
     "symfony/http-foundation": "^7.4 || ^8.0",
     "symfony/http-kernel": "^7.4 || ^8.0",
-    "symfony/translation": "^7.4 || ^8.0"
+    "symfony/translation-contracts": "^3.6"
   },
   "require-dev": {
     "contao-community-alliance/dc-general": "^2.6@dev",
@@ -98,10 +98,7 @@
   "autoload-dev": {
     "psr-4": {
       "MenAtWork\\MultiColumnWizardBundle\\Test\\": "tests"
-    },
-    "files": [
-      "tests/contao3-autoloader.php"
-    ]
+    }
   },
   "config": {
     "allow-plugins": {
