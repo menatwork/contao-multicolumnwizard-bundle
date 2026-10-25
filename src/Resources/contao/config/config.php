@@ -32,7 +32,6 @@ use MenAtWork\MultiColumnWizardBundle\EventListener\Contao\ExecutePostActions;
 
 $GLOBALS['BE_FFL']['multiColumnWizard'] = MultiColumnWizard::class;
 
-$GLOBALS['TL_HOOKS']['initializeSystem'][]   = [InitializeSystem::class, 'addSystemNecessaryThings'];
 $GLOBALS['TL_HOOKS']['initializeSystem'][]   = [InitializeSystem::class, 'changeAjaxPostActions'];
 $GLOBALS['TL_HOOKS']['executePostActions'][] = [ExecutePostActions::class, 'executePostActions'];
 $GLOBALS['TL_HOOKS']['executePostActions'][] = [ExecutePostActions::class, 'handleRowCreation'];

@@ -57,6 +57,9 @@ class InitializeSystem
      *
      * @return void
      *
+     * @deprecated No longer registered as initializeSystem hook, the assets are added by the
+     *             BackendAssetsListener on kernel.request. Will be removed in the next major version.
+     *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
     public function addSystemNecessaryThings(): void
