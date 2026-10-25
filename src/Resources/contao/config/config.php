@@ -18,6 +18,7 @@
  * @author     fritzmg <email@spikx.net>
  * @author     Stefan Heimes <stefan_heimes@hotmail.com>
  * @author     Tristan Lins <tristan.lins@bit3.de>
+ * @author     Marko Cupic <m.cupic@gmx.ch>
  * @author     Yanick Witschi <yanick.witschi@certo-net.ch>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH
@@ -32,7 +33,6 @@ use MenAtWork\MultiColumnWizardBundle\EventListener\Contao\ExecutePostActions;
 
 $GLOBALS['BE_FFL']['multiColumnWizard'] = MultiColumnWizard::class;
 
-$GLOBALS['TL_HOOKS']['initializeSystem'][]   = [InitializeSystem::class, 'addSystemNecessaryThings'];
 $GLOBALS['TL_HOOKS']['initializeSystem'][]   = [InitializeSystem::class, 'changeAjaxPostActions'];
 $GLOBALS['TL_HOOKS']['executePostActions'][] = [ExecutePostActions::class, 'executePostActions'];
 $GLOBALS['TL_HOOKS']['executePostActions'][] = [ExecutePostActions::class, 'handleRowCreation'];

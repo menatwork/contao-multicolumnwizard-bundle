@@ -12,6 +12,13 @@ services:
       - '@MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService'
       - '%kernel.debug%'
 
+  MenAtWork\MultiColumnWizardBundle\EventListener\BackendAssetsListener:
+    arguments:
+      - '@MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService'
+      - '%kernel.debug%'
+    tags:
+      - { name: kernel.event_listener, event: kernel.request }
+
   MenAtWork\MultiColumnWizardBundle\Service\ContaoApiService:
     public: true
     arguments:

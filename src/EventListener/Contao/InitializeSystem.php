@@ -14,6 +14,7 @@
  * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author     Stefan Heimes <stefan_heimes@hotmail.com>
  * @author     Ingolf Steinhardt <info@e-spin.de>
+ * @author     Marko Cupic <m.cupic@gmx.ch>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH
  * @copyright  2013-2026 MEN AT WORK
@@ -56,6 +57,9 @@ class InitializeSystem
      * Check the scope and add some more information.
      *
      * @return void
+     *
+     * @deprecated No longer registered as initializeSystem hook, the assets are added by the
+     *             BackendAssetsListener on kernel.request. Will be removed in the next major version.
      *
      * @SuppressWarnings(PHPMD.Superglobals)
      */
