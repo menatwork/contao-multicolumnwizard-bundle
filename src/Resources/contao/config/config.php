@@ -18,7 +18,6 @@
  * @author     fritzmg <email@spikx.net>
  * @author     Stefan Heimes <stefan_heimes@hotmail.com>
  * @author     Tristan Lins <tristan.lins@bit3.de>
- * @author     Marko Cupic <m.cupic@gmx.ch>
  * @author     Yanick Witschi <yanick.witschi@certo-net.ch>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH

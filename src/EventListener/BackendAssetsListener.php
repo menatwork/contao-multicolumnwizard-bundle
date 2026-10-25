@@ -11,7 +11,6 @@
  * This project is provided in good faith and hope to be usable by anyone.
  *
  * @package    menatwork/contao-multicolumnwizard-bundle
- * @author     Marko Cupic <m.cupic@gmx.ch>
  * @copyright  2011 Andreas Schempp
  * @copyright  2011 certo web & design GmbH
  * @copyright  2013-2026 MEN AT WORK
