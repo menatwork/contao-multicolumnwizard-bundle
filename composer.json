@@ -60,7 +60,7 @@
   },
   "require": {
     "php": "^8.3",
-    "contao/core-bundle": "^6.0",
+    "contao/core-bundle": "^6.1",
     "contao/manager-plugin": "^2.1",
     "monolog/monolog": "^3.0",
     "psr/log": "^2.0 || ^3.0",
