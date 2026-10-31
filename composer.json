@@ -80,6 +80,9 @@
     "contao-legacy/multicolumnwizard": "*",
     "menatwork/contao-multicolumnwizard": ">=3.3.4 <4.0"
   },
+  "suggest": {
+    "contao/api-bundle": "Makes the multi column wizard fields available in the Contao API"
+  },
   "minimum-stability": "dev",
   "prefer-stable": true,
   "autoload": {

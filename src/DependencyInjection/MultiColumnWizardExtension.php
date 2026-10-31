@@ -64,5 +64,12 @@ class MultiColumnWizardExtension extends Extension
         foreach ($this->files as $file) {
             $loader->load($file);
         }
+
+        // The converter implements an interface of the API bundle, which is optional.
+        /** @var array<string, class-string> $bundles */
+        $bundles = $container->getParameter('kernel.bundles');
+        if (isset($bundles['ContaoApiBundle'])) {
+            $loader->load('api.yml');
+        }
     }
 }
