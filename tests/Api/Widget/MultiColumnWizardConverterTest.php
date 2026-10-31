@@ -36,10 +36,14 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Translation\LocaleSwitcher;
 
+/**
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ * @SuppressWarnings(PHPMD.Superglobals)
+ */
 #[CoversClass(MultiColumnWizardConverter::class)]
 final class MultiColumnWizardConverterTest extends TestCase
 {
-    private array $befFfl;
+    private ?array $befFfl = null;
 
     protected function setUp(): void
     {
@@ -53,7 +57,10 @@ final class MultiColumnWizardConverterTest extends TestCase
 
     protected function tearDown(): void
     {
-        $GLOBALS['BE_FFL'] = $this->befFfl;
+        // Not set when setUp skipped the test.
+        if (null !== $this->befFfl) {
+            $GLOBALS['BE_FFL'] = $this->befFfl;
+        }
     }
 
     public function testSupportsAWizardWhoseColumnsAreAllSupported(): void
